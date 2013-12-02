@@ -1,12 +1,14 @@
-all: array zero bspline graph sinc
+all: array zero bspline graph sinc gradtest
 clean: 
-	rm -f array zero bspline graph sinc
-
+	rm -f array zero bspline graph sinc gradtest
 %: %.cpp
-	g++ $< -o $@.o -std=c++11 -mtune=generic
+	g++ $< -o $@ -std=c++11 -mtune=generic
 
 %: %.cxx
-	g++ $< -o $@.o -std=c++11 -mtune=generic
+	g++ $< -o $@ -std=c++11 -mtune=generic
+
+gradtest: gradtest.cpp
+	g++ tga.cpp gradtest.cpp -o gradtest -g -std=c++11 -mtune=generic
 
 lanczos: lanczos.cpp
 	g++ lanczos.cpp -o lanczos -std=c++11 -g
