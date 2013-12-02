@@ -1,0 +1,1 @@
+FTYPE test(FTYPE in);
