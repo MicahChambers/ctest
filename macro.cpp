@@ -1,0 +1,7 @@
+#define genFuncts(
+
+int main()
+{
+
+
+}

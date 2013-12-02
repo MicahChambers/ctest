@@ -2,20 +2,8 @@
 
 int main()
 {
-	int C = 1;
-	unsigned int D = 1;
-	printf("%i\n", C);
-	printf("%u\n", D);
-	
-	C = (C<<1);
-	D = (D<<1);
-	
-	printf("%i\n", C);
-	printf("%u\n", D);
-	
-	C = (C<<1);
-	D = (D<<1);
-	
-	printf("%i\n", C);
-	printf("%u\n", D);
+    int shift = 3;
+    int samples = 32;
+    
+    printf("%zu %zu %zu\n", (samples >> (shift)), (samples >> (shift-1)), (samples >> (shift-2)));
 }
