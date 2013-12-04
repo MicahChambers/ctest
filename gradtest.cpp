@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -34,8 +35,12 @@ int main()
 		}
 	}
 
+	double dx = 1;
+	double expect_dy = 0;
+	double real_dy = 0;
+	double dy = 0;
 	double grad[2] = {0,0};
-	double pos[2] = {8, -8};
+	double pos[2] = {8, -4};
 	int ipos[2];
 	convertPosToIPos(pos, step, origin, ipos);
 
@@ -51,7 +56,7 @@ int main()
 				xi = 0;
 			else if(xi >= size) 
 				xi = size-1;
-			grad[0] += xx*func[size*xi + ipos[1]]/step[0];
+			grad[0] += .5*xx*func[size*xi + ipos[1]]/step[0];
 		}
 
 		grad[1] = 0;
@@ -61,21 +66,33 @@ int main()
 				yi = 0;
 			else if(yi >= size) 
 				yi = size-1;
-			grad[1] += yy*func[size*ipos[0]+ yi]/step[1];
+			grad[1] += .5*yy*func[size*ipos[0]+ yi]/step[1];
 		}
+
+		double mag = 0;
+		for(int ii = 0 ; ii < 2; ii++)
+			mag += pow(grad[ii], 2);
+		mag = sqrt(mag);
+		for(int ii = 0 ; ii < 2; ii++)
+			grad[ii] /= mag;
 
 		cout << "Position : (" << pos[0] << "," << pos[1] << ")" << endl;
 		cout << "Index Position : (" << ipos[0] << "," << ipos[1] << ")" << endl;
-		cout << "Gradient: (" << grad[0] << "," << grad[1] << ")" << endl;
+		cout << "Gradient: (" << grad[0] << "," << grad[1] << ")" << " Mag: " << mag << endl;
+		expect_dy = dx*mag;
 		
 		//restore old val (for display purposes)
 		func[size*ipos[0] + ipos[1]] = oldval;
+		real_dy = oldval;
+		cout << "Y: " << func[size*ipos[0]+ipos[1]] << ", Y_Next: " << func[size*ipos[0]+ipos[1]]-expect_dy;
 
 		//move, gradient DESCENT
-		pos[0] = pos[0] - .05*grad[0]/step[0];
-		pos[1] = pos[1] - .05*grad[1]/step[1];
+		pos[0] = pos[0] - dx*grad[0];
+		pos[1] = pos[1] - dx*grad[1];
 		convertPosToIPos(pos, step, origin, ipos);
-
+		real_dy -= func[size*ipos[0]+ipos[1]];
+		cout << "Y_Next: " << func[size*ipos[0]+ipos[1]] << ", Error: " << real_dy << endl;
+		
 		//save old val (for display purposes)
 		oldval = func[size*ipos[0] + ipos[1]];
 

@@ -1,4 +1,4 @@
-all: array zero bspline graph sinc gradtest
+all: array zero bspline graph sinc gradtest linesearch
 clean: 
 	rm -f array zero bspline graph sinc gradtest
 %: %.cpp
