@@ -1,4 +1,4 @@
-all: array zero bspline graph sinc gradtest linesearch
+all: array zero bspline graph sinc gradtest linesearch plottest bspline_regularize
 clean: 
 	rm -f array zero bspline graph sinc gradtest
 %: %.cpp
@@ -6,6 +6,12 @@ clean:
 
 %: %.cxx
 	g++ $< -o $@ -std=c++11 -mtune=generic
+
+bspline_regularize: bspline_regularize.cpp plot.cpp tga.cpp plot.h
+	g++ tga.cpp plot.cpp bspline_regularize.cpp -o bspline_regularize -std=c++11 -march=native
+
+plottest: plottest.cpp plot.cpp tga.cpp
+	g++ tga.cpp plot.cpp plottest.cpp -o plottest -g -std=c++11 -mtune=generic
 
 gradtest: gradtest.cpp
 	g++ tga.cpp gradtest.cpp -o gradtest -g -std=c++11 -mtune=generic
