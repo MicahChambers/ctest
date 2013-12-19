@@ -6,8 +6,6 @@ using namespace std;
 
 double goldenSectionSearch(double x1, double x4, double (*f)(double)) 
 {
-	double midp;
-	double x;
 	const double TAU = (3.-sqrt(5.))/2;
 	double x2, x3, y2, y3;
 	double y1 = f(x1);
@@ -25,8 +23,8 @@ double goldenSectionSearch(double x1, double x4, double (*f)(double))
 	while(fabs(x4 - x1) > TOL ) {
 		assert(fabs(x2 - (x1+TAU*(x4-x1))) < 0.00000001);
 		assert(fabs(x3 - (x4-TAU*(x4-x1))) < 0.00000001);
-		if(y2 < y3) {
-			if(y1 <= y2) {
+		if(y2 > y3) {
+			if(y1 >= y2) {
 				//     * 
 				//   ]   
 				// *
@@ -52,8 +50,8 @@ double goldenSectionSearch(double x1, double x4, double (*f)(double))
 				y2 = f(x2);
 				cout << "Next: " << x1 << "\t" << x2 << "\t" << x3 << "\t" << x4 << endl;
 			}
-		} else if(y2 > y3) {
-			if(y3 >= y4) {
+		} else if(y2 < y3) {
+			if(y3 <= y4) {
 				// *
 				//   [
 				//     *
@@ -110,5 +108,5 @@ double foo(double x)
 
 int main()
 {
-	cout << "Min X: " << goldenSectionSearch(-10, 20, foo) << endl;
+	cout << "Max X: " << goldenSectionSearch(-10, 20, foo) << endl;
 }
