@@ -1,4 +1,4 @@
-all: array zero bspline graph sinc gradtest linesearch plottest bspline_regularize goldensearch
+all: array copy zero bspline graph sinc gradtest linesearch plottest bspline_regularize goldensearch
 clean: 
 	rm -f array zero bspline graph sinc gradtest
 %: %.cpp

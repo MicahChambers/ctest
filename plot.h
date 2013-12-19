@@ -71,23 +71,26 @@ void writePlot(double xmin, double xres, int xsize,
 }
 
 template <typename... Targs>
-void writePlot(std::string filename, double xrange[2], double xres, double yres, Targs... Fargs)
+void writePlot(std::string filename, double xrange[2], double xres, Targs... Fargs)
 {
 	std::list<std::vector<double>> xfuncs;
 	std::list<std::vector<double>> yfuncs;
 	int xsize = (xrange[1]-xrange[0])/xres;
 
+	//this fills xfuncs, yfuncs
 	NPLINTERNAL::writePlot(xrange[0], xres, xsize, &xfuncs, &yfuncs, Fargs...);
 
 	double yrange[2] = {INFINITY, -INFINITY};
 
 	//find min and max values of x and y, 
 	//also find the maximum distance between adjacent values of y
+	double yres = -INFINITY;
 	auto ity = yfuncs.begin();
 	for( ; ity != yfuncs.end(); ity++) {
 		yrange[0] = std::min((*ity)[0], yrange[0]);
 		yrange[1] = std::max((*ity)[0], yrange[1]);
 		for(int ii = 1 ; ii < xsize; ii++) {
+			yres = std::max(yres, std::abs((*ity)[ii]-(*ity)[ii-1]));
 			yrange[0] = std::min((*ity)[ii], yrange[0]);
 			yrange[1] = std::max((*ity)[ii], yrange[1]);
 		}
