@@ -9,7 +9,5 @@ int main()
 	const int TBINS = 30;
 
 
-
-	for(int 
 }
 

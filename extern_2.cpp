@@ -1,2 +1,2 @@
-double const external = 2;
-extern const double* external_ptr = &external;
+const double external = 2;
+const double* external_ptr = &external;

@@ -128,14 +128,14 @@ class LowerDenseMatrix : public MatrixBase<T>
 {
 	public:
 
-	UpperDenseMatrix(unsigned int nrow = 1, unsigned int ncol = 1) : 
+	LowerDenseMatrix(unsigned int nrow = 1, unsigned int ncol = 1) : 
 				MatrixBase<T>(nrow, ncol)
 	{
 		unsigned int extra = nrow*std::max<unsigned int>(ncol - nrow, 0);
 		data = new T[nrow*(nrow-1)/2 + nrow + extra];
 	};
 
-	~UpperDenseMatrix()
+	~LowerDenseMatrix()
 	{
 		delete[] data;
 	}
