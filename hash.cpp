@@ -11,15 +11,21 @@ struct HashMe
 	std::string d;
 };
 
-size_t () (const Interval &interval) const {
-   //                                           ^^^^^
-   //                                           Don't forget this!
-     string temp = to_string(interval.b) + 
-                   to_string(interval.e) + 
-                   to_string(interval.proteinIndex);
-     return (temp.length());
-   }
+namespace std {
+template<>
+struct hash<HashMe>
+{
+public:
+    std::size_t operator()(HashMe const& s) const 
+    {
+        std::size_t h1 = std::hash<int>()(s.a);
+        std::size_t h2 = std::hash<int>()(s.b);
+        std::size_t h3 = std::hash<int>()(s.c);
+        std::size_t h4 = std::hash<std::string>()(s.d);
+        return h1 ^ (h2 << 1) ^ (h3 >> 1) ^ (h4 << 2);
+    }
 };
+}
 
 int main ()
 {

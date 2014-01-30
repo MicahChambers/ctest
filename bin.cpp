@@ -1,8 +1,10 @@
 #include <iostream>
+#include <vector>
+#include <cmath>
 
 int main()
 {
-    vector<double> nums = {.1, .8, .11, .9, 2, 2.1, 1.9, 3.1};
+	std::vector<double> nums = {.1, .8, .11, .9, 2, 2.1, 1.9, 3.1};
 
     int bins = 3;
 
@@ -22,7 +24,7 @@ int main()
     double tol = binwidth/3.;
 
     for(int i = 0 ; i < nums.size() ; i++) {
-        bin = bins*(nums[i]-min)/(max-min)
+        int bin = bins*(nums[i]-min)/(max-min);
         std::cout << nums[i] << " -> " << bin << std::endl;
         std::cout << bin*binwidth << "-" << (bin+1)*binwidth << std::endl;
         if(fabs(nums[i] - (bin*binwidth+binwidth/2)) <= (binwidth - tol)/2 ||
@@ -31,7 +33,6 @@ int main()
             std::cout << bin << " += " << 1;
         else if(nums[i] > bin*binwidth+binwidth/2) {
             int bin2 = bin+1;
-            if(bin2 >= bins) 
         } else {
             int bin2 = bin-1;
 

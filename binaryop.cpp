@@ -12,7 +12,7 @@ int main()
 
     uinta = (uinta | uintb);
     inta = (inta | intb);
-    duba = (duba | dubb);
-    fa = (fa | fb);
+//    duba = (duba | dubb);
+//    fa = (fa | fb);
     
 }
