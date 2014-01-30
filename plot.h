@@ -70,8 +70,17 @@ void writePlot(double xmin, double xres, int xsize,
 }
 }
 
+/**
+ * @brief Tool to plot multiple functions together
+ *
+ * @tparam Targs	References to Functions (double -> double)
+ * @param filename	Output image filename (*.tga)
+ * @param xrange[2]	X values to plot [xrange[0], xrange[1]]
+ * @param xres		density of x plotting, density/resolution
+ * @param Fargs		functions to plot of type double f(double)
+ */
 template <typename... Targs>
-void writePlot(std::string filename, double xrange[2], double xres, double yres, Targs... Fargs)
+void writePlot(std::string filename, double xrange[2], double xres, Targs... Fargs)
 {
 	std::list<std::vector<double>> xfuncs;
 	std::list<std::vector<double>> yfuncs;
@@ -79,6 +88,7 @@ void writePlot(std::string filename, double xrange[2], double xres, double yres,
 
 	NPLINTERNAL::writePlot(xrange[0], xres, xsize, &xfuncs, &yfuncs, Fargs...);
 
+	double yres = 0;
 	double yrange[2] = {INFINITY, -INFINITY};
 
 	//find min and max values of x and y, 
@@ -90,6 +100,7 @@ void writePlot(std::string filename, double xrange[2], double xres, double yres,
 		for(int ii = 1 ; ii < xsize; ii++) {
 			yrange[0] = std::min((*ity)[ii], yrange[0]);
 			yrange[1] = std::max((*ity)[ii], yrange[1]);
+			yres = std::max(yres, (*ity)[ii]-(*ity)[ii-1]);
 		}
 	}
 	
