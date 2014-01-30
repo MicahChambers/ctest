@@ -91,10 +91,9 @@ void writePlot(std::string filename, double xrange[2], double xres, Targs... Far
 
 	double yres = 0;
 	double yrange[2] = {INFINITY, -INFINITY};
-
+	
 	//find min and max values of x and y, 
 	//also find the maximum distance between adjacent values of y
-	double yres = -INFINITY;
 	auto ity = yfuncs.begin();
 	for( ; ity != yfuncs.end(); ity++) {
 		yrange[0] = std::min((*ity)[0], yrange[0]);
