@@ -1,8 +1,7 @@
 #CFLAGS="-mtune=generic"
 CFLAGS=-std=c++11 -O3 -march=native
 
-
-all: array copy zero bspline graph sinc gradtest linesearch plottest bspline_regularize goldensearch template_user
+all: math array copy zero bspline graph sinc gradtest linesearch plottest bspline_regularize goldensearch template_user
 clean: 
 	rm -f array zero bspline graph sinc gradtest
 %: %.cpp
