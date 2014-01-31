@@ -33,7 +33,7 @@ int eval(const list<string>& rpn)
 	for(auto it = rpn.begin(); it != rpn.end(); it++) {
 		pos += it->length() + 1;
 
-		if(MATHOPS.find((*it)[0]) != string::npos) {
+		if(it->length() == 1 && MATHOPS.find((*it)[0]) != string::npos) {
 			//simulate performing the operation
 			if(arglist.size() < 2) {
 				cerr << "Error, invalid expression!" << endl;

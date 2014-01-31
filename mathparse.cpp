@@ -24,7 +24,7 @@ struct OperandT
 
 bool isnumeric(char c)
 {
-	return isdigit(c) || c == '.';
+	return isdigit(c) || c == '.' || c == '-' || c == '+';
 }
 
 /**
@@ -39,7 +39,7 @@ bool isnumeric(char c)
  *
  * @return 		token
  */
-OperandT gettoke(int& pos, string str)
+OperandT gettoke(int& pos, string str, bool prevop)
 {
 	OperandT fail = {"", 0};
 
@@ -50,7 +50,8 @@ OperandT gettoke(int& pos, string str)
 	string str2;
 
 	//check if its an operator
-	if(MATHOPS.find(str[pos]) != string::npos) {
+	if(MATHOPS.find(str[pos]) != string::npos && 
+			(!prevop || str[pos] != '+' && str[pos] != '-')) {
 		pos++;
 		OperandT tmp = {"", str[pos-1]};
 		return tmp;
@@ -149,14 +150,17 @@ list<string> reorder(std::string str)
 	str.resize(jj);
 
 	/* While there are tokens to evaluate */
-	OperandT toke = gettoke(pos, str);
+	bool prevop = true;
+	OperandT toke = gettoke(pos, str, prevop);
 	while(prev < pos) {
 
 		if(toke.lit != "") {
 			// Literal, string or number
+			prevop = false;
 			outqueue.push_back(toke.lit);
 		} else if(toke.op != 0) {
 			// Operator 
+			prevop = true;
 			if(toke.op == '(') {
 				// Open Parenthetical
 				opstack.push_front(toke.op);
@@ -191,7 +195,7 @@ list<string> reorder(std::string str)
 			}
 		}
 		prev = pos;
-		toke = gettoke(pos, str);
+		toke = gettoke(pos, str, prevop);
 	}
 
 	// Copy last operators to output queue
