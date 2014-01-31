@@ -1,7 +1,7 @@
 #CFLAGS="-mtune=generic"
 CFLAGS=-std=c++11 -O3 -march=native
 
-all: math array copy zero bspline graph sinc gradtest linesearch plottest bspline_regularize goldensearch template_user
+all: math array copy zero bspline graph sinc gradtest linesearch plottest bspline_regularize goldensearch 
 clean: 
 	rm -f array zero bspline graph sinc gradtest
 %: %.cpp
@@ -34,8 +34,8 @@ sort: sort.cpp
 extern: extern_1.cpp extern_1.h extern_2.cpp
 	g++ extern_1.cpp extern_2.cpp -o extern
 
-libtemplate.so: template_shared_object.cpp 
-	g++ $< -shared -o $@ -Wl,-soname,libtemplate.so -fPIC -std=c++11 ${CFLAGS} 
-
-template_user: template_user.cpp libtemplate.so
-	#g++ -v template_user.cpp -fPIC -o $@ -std=c++11 ${CFLAGS} -L. -ltemplate
+#libtemplate.so: template_shared_object.cpp 
+#	g++ $< -shared -o $@ -Wl,-soname,libtemplate.so -fPIC -std=c++11 ${CFLAGS} 
+#
+#template_user: template_user.cpp libtemplate.so
+#	g++ -v template_user.cpp -fPIC -o $@ -std=c++11 ${CFLAGS} -L. -ltemplate
