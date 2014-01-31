@@ -1,8 +1,9 @@
+#include <string>
+#include <list>
 
-
-const std::string MATHOPS = "-+*/^()";
-const std::string MATHOPP = "1122300";
-const std::string MATHOPA = "llllrxx";
+const std::string MATHOPS = "-+*/^(),|";
+const std::string MATHOPP = "112230000";
+const std::string MATHOPA = "llllrxxll";
 
 
 /**

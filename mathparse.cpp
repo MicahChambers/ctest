@@ -31,7 +31,7 @@ bool isnumeric(char c)
  * @brief Reads from input string and returns a whole token 
  * 			(operator/literal/variable). We give [] special
  * 			privilege and allow for string names 
- * 			unlike normal tokenizers
+ * 			unlike normal tokenizers. (Assumes no whitespace)
  *
  * @param pos	input/output start searching at this point in the string, 
  * 				gets changed to the start of the next search
@@ -48,8 +48,6 @@ OperandT gettoke(int& pos, string str)
 
 	int beg;
 	string str2;
-	//skip starting white space
-	for(; pos < str.size() && isspace(str[pos]) ; pos++) continue;
 
 	//check if its an operator
 	if(MATHOPS.find(str[pos]) != string::npos) {
@@ -80,45 +78,28 @@ OperandT gettoke(int& pos, string str)
 	/* 
 	 * check for bracketed expression after literal string
 	 */
-
-	//eat white space
-	for(; pos < str.size() && isspace(str[pos]) ; pos++) continue;
 	
 	if(str[pos] == '[') {
-		pos++;
-		str2 += '[';
-		
-		//eat white space
-		for(; pos < str.size() && isspace(str[pos]) ; pos++) continue;
+		beg = pos++;
 
-		//check for variables (string/number) again
-		if(isalpha(str[pos])) {
-			//if it is a varname, get the whole name
-			for(beg = pos; pos < str.size() && isalpha(str[pos]); pos++) continue;
+		//only allow commas if there is numeric input
+		if(isnumeric(str[pos])) {
+			for(; pos < str.size() && (str[pos] == ',' || isnumeric(str[pos]));  pos++) 
+					continue;
 
-			if(pos > beg)
-				str2 = str2+str.substr(beg, pos-beg);
-
-		} else {
-			//if it is a number, get the whole number
-			for(beg = pos; pos < str.size() && isnumeric(str[pos]);  pos++) 
+		} else if(isalpha(str[pos])) {
+		//if there is a variable in the [] then only allow one
+			for(; pos < str.size() && isalpha(str[pos]);  pos++)
 				continue;
-			if(pos > beg)
-				str2 = str2+str.substr(beg, pos-beg);
 		}
 
-		cerr << str[pos] << endl;
-		//eat white space
-		for(; pos < str.size() && isspace(str[pos]) ; pos++) continue;
-		cerr << str[pos] << endl;
-		if(str[pos] != ']') {
+		if(pos == str.size() || str[pos] != ']') {
 			cerr << "Error Parsing input, it looks like you are missing a closing"
-				"bracket at " << endl << str << endl << setw(pos+1) << '^' << endl;
+				"bracket, or have not provided a legal index " 
+				<< endl << str << endl << setw(beg+1) << '^' << endl;
 			return fail;
 		}
-		cerr << str[pos] << endl;
-		str2 += ']';
-		pos++;
+		str2 += str.substr(beg, ++pos-beg);
 	}
 
 	if(str2 != "") {
@@ -154,6 +135,18 @@ list<string> reorder(std::string str)
 
 	list<string> outqueue;
 	list<char> opstack;
+
+	int jj = 0;
+	for(int ii = 0; ii < str.length(); ii++) {
+		if(!isprint(str[ii])) {
+			cerr << "Error, not sure what this character is: " << endl << str
+					<< setw(ii) << "^" << endl; 
+			return outqueue;
+		}
+		if(!isspace(str[ii])) 
+			str[jj++] = str[ii];
+	}
+	str.resize(jj);
 
 	/* While there are tokens to evaluate */
 	OperandT toke = gettoke(pos, str);

@@ -42,7 +42,7 @@ int eval(const list<string>& rpn)
 
 			string tmp = arglist.front();
 			arglist.pop_front();
-			tmp = "(" + tmp + *it + arglist.front() + ")";
+			tmp = "(" + arglist.front() + *it + tmp + ")";
 			arglist.pop_front();
 			arglist.push_front(tmp);
 		} else {
