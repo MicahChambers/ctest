@@ -28,7 +28,7 @@ struct OperandT
 
 bool isnumeric(char c)
 {
-	return isdigit(c) || c == '.' || c == '-' || c == '+';
+	return isdigit(c) || c == '.';
 }
 
 /**
@@ -55,7 +55,7 @@ OperandT gettoke(int& pos, string str, bool prevop)
 
 	//check if its an operator
 	if(MATHOPS.find(str[pos]) != string::npos && 
-			(!prevop || str[pos] != '+' && str[pos] != '-')) {
+			!(prevop && (str[pos] == '+' || str[pos] == '-'))) {
 		pos++;
 		OperandT tmp = {"", str[pos-1]};
 		return tmp;
@@ -228,88 +228,44 @@ double procV(std::list<double>& args,
 		std::function<double(std::list<double>&)> bef2,
 		std::function<double(double,double)> fc)
 {
-	cerr << "Array: ";
-	for(auto it = args.begin(); it != args.end(); it++)
-		cerr << *it << ",";
-	cerr << endl;
-	cerr << &bef1 << endl;
-	cerr << &bef2 << endl;
-
 	double A = bef1(args);
 	double B = bef2(args);
 
-	cerr << "Evaluating: ";
-	cerr << &fc << " with " << A << ", " << B << endl;
-	cerr << endl;
 	return fc(A, B);
 }
 
-string traverse_help(std::list<string>::iterator it, std::list<string>& rpn, 
-		std::list<string>& args)
+double wrap(std::list<double> args, std::function<double(std::list<double>&)> f)
 {
-	string orig = *it;
-	cerr << "enter: " << orig << "It: " << *it << endl;
-	cerr << "enter: " << orig << "RPN: ";
-	for(auto tit = rpn.begin(); tit != rpn.end(); tit++) {
-		cerr<< *tit << " ";
-	}
-	cerr << endl;
-	cerr << "Args: ";
-	for(auto tit = args.begin(); tit != args.end(); tit++) {
-		cerr<< *tit << " ";
-	}
-	cerr << endl;
-
-	if(MATHOPS.find(*it) != string::npos) {
-		//operator
-		--it;
-		string s1 = traverse_help(it, rpn, args);
-		--it;
-		string s2 = traverse_help(it, rpn, args);
-		args.push_back(s2);
-		args.push_back(s1);
-		return "!";
-	} else {
-		string tmp = *it;
-		it = rpn.erase(it);
-		return tmp;
-	}
+	return f(args);
 }
 
-void traverse(std::list<string> rpn, std::list<string>& args)
-{
-	auto it = rpn.end();
-	--it;
-	traverse_help(it, rpn, args);
-}
-
-std::function<double(const std::vector<double>&)>
-makeChain(std::list<string> rpn, std::list<string> args)
+std::function<double(std::list<double>&)>
+makeChain(std::list<string> rpn, std::list<string>& args)
 {
 	using namespace std::placeholders;
 	
-
-	for(int ii = 0 ; ii < 5; ii++) {
-		cerr << MATHOPS[ii] << ":" << &MATHFUNC[ii] << endl;
-	}
-
 	std::vector<string> arglist;
+
+#ifndef NDEBUG
 	std::ostringstream ostr("");
 	for(auto it = rpn.begin(); it != rpn.end(); it++) {
 		ostr << *it << " ";
 	}
 	cout << "RPN: " << ostr.str() << endl;
+#endif //NDEBUG
 
 	std::vector<std::function<double(std::list<double>&)>> funcs;
 
 	for(auto it = rpn.begin(); it != rpn.end(); it++) {
 
 		size_t opi = MATHOPS.find((*it)[0]);
+#ifndef NDEBUG
 		cerr << "Op: ";
 		cerr << "Arglist: ";
 		for(auto it = arglist.begin(); it != arglist.end(); it++) 
 			cerr << *it << ",";
 		cerr << endl;
+#endif //NDEBUG
 		if(opi != string::npos) {
 
 			if(arglist.size() < 2) {
@@ -341,7 +297,6 @@ makeChain(std::list<string> rpn, std::list<string> args)
 				
 				//take the used arguments off the arglist
 				arglist.pop_back();
-				args.push_back(arglist.back());
 				arglist.pop_back();
 			} else if(arglist[arglist.size()-2] == "!") {
 				auto f2 = funcs.back();
@@ -350,7 +305,6 @@ makeChain(std::list<string> rpn, std::list<string> args)
 				auto newfunc = bind(procV, _1, f2, getV, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				//take the used arguments off the arglist
-				args.push_back(arglist.back());
 				arglist.pop_back();
 				arglist.pop_back();
 			} else {
@@ -361,8 +315,6 @@ makeChain(std::list<string> rpn, std::list<string> args)
 				arglist.pop_back();
 				std::string b = arglist.back();
 				arglist.pop_back();
-				args.push_back(b);
-				args.push_back(a);
 			} 
 
 			arglist.push_back("!");
@@ -372,35 +324,19 @@ makeChain(std::list<string> rpn, std::list<string> args)
 		}
 	}
 	
-//	traverse(rpn, args);
-
 	if(arglist.size() != 1) {
 		cerr << "Error Too Many Terms!" << endl;
 		return NULL;
 	}
 
-
-
-	std::list<double> fargs;
-//	cerr << "Args: ";
-//	for(auto it = args.begin() ; it != args.end(); it++) {
-//		fargs.push_back(atof(it->c_str()));
-//		cerr << fargs.back() << ", " ;
-//	}
-//	cerr << endl;
-	cerr << "Args: ";
+	args.clear();
 	for(auto it = rpn.begin() ; it != rpn.end(); it++) {
 		if(MATHOPS.find((*it)[0]) == string::npos) {
-			fargs.push_back(atof(it->c_str()));
-			cerr << fargs.back() << ", " ;
+			args.push_back(it->c_str());
 		}
 	}
-	cerr << endl;
 
-
-	funcs.back()(fargs);
-
-	return 0;
+	return bind(wrap, _1, funcs.back());
 }
 ///**
 // * @brief Example Evaluation function

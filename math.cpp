@@ -59,20 +59,41 @@ int eval(const list<string>& rpn)
 	return 0;
 }
 
+double bigmath(double a, double b, double c, double d, double e, double f, double g, double h)
+{
+	return pow(a*b-pow(c,pow(d,e)) + f*g,h);
+}
+
 int main(int argc, char** argv)
 {
-
-	if(argc != 2) {
-		std::cerr << "Needs 1 argument" << std::endl;
-	}
+	string str = "(3*1-4^1.1^.5 + 3*3)^3.3";
 	
-	list<string> rpn = reorder(argv[1]);
+	list<string> rpn = reorder(str);
 	if(rpn.empty()) {
 		return -1;
 	}
 
 	std::list<string> args;
 	auto foo = makeChain(rpn, args);
+
+	std::list<double> fargs;
+	for(auto it = args.begin() ; it != args.end(); it++) {
+		fargs.push_back(atof(it->c_str()));
+	}
+
+	cerr << bigmath(3,1,4,1.1,.5,3,3,3.3) << "vs " << foo(fargs) << endl;
+
+	const int ITERS = 1000000;
+	cerr << "BigMath: " << endl;
+	for(int ii = 0 ; ii < ITERS; ii++) {
+		bigmath(3,1,4,1.1,.5,3,3,3.3);
+	}
+	cerr << "Dynamic: " << endl;
+	for(int ii = 0 ; ii < ITERS; ii++) {
+		
+		foo(fargs);
+	}
+
 //	if(eval(rpn) < 0) {
 //		return -1;
 //	}
