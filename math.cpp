@@ -64,6 +64,20 @@ double bigmath(double a, double b, double c, double d, double e, double f, doubl
 	return pow(a*b-pow(c,pow(d,e)) + f*g,h);
 }
 
+double bigmath(const std::vector<double>& in)
+{
+	const double& a = in[0];
+	const double& b = in[1];
+	const double& c = in[2];
+	const double& d = in[3];
+	const double& e = in[4];
+	const double& f = in[5];
+	const double& g = in[6];
+	const double& h = in[7];
+	return bigmath(a,b,c,d,e,f,g,h);
+}
+
+
 int main(int argc, char** argv)
 {
 	string str = "(3*1-4^1.1^.5 + 3*3)^3.3";
@@ -73,7 +87,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	std::list<string> args;
+	std::vector<string> args;
 	auto foo = makeChain(rpn, args);
 
 	std::vector<double> fargs;
@@ -89,11 +103,10 @@ int main(int argc, char** argv)
 	const int ITERS = 1000000;
 	cerr << "BigMath: " << endl;
 	for(int ii = 0 ; ii < ITERS; ii++) {
-		bigmath(3,1,4,1.1,.5,3,3,3.3);
+		bigmath(fargs);
 	}
 	cerr << "Dynamic: " << endl;
 	for(int ii = 0 ; ii < ITERS; ii++) {
-		
 		foo(fargs);
 	}
 

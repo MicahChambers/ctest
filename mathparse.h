@@ -28,7 +28,7 @@ const std::function<double(double,double)> MATHFUNC[] = {
 };
 
 std::function<double(const std::vector<double>&)>
-makeChain(std::list<std::string> rpn, std::list<std::string>& args);
+makeChain(std::list<std::string> rpn, std::vector<std::string>& args);
 
 /**
  * @brief Takes a string of infix math operations and converts them to RPN

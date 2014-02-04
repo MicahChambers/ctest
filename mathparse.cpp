@@ -232,15 +232,21 @@ double procV(const std::vector<double>& args, size_t& ii,
 	return fc(A, B);
 }
 
-double wrap(const std::vector<double>& args, 
+double wrap(const std::vector<double>& args, const size_t sz,
 			std::function<double(const std::vector<double>&, size_t&)> f)
 {
 	size_t ii = 0;
+	if(args.size() != sz) {
+#ifndef NDEBUG
+		cerr << "Error Incorrect Number of Arguments for the given equation" << endl;
+#endif //NDEBUG
+		return NAN;
+	}
 	return f(args, ii);	
 }
 
 std::function<double(const std::vector<double>&)>
-makeChain(std::list<string> rpn, std::list<string>& args)
+makeChain(std::list<string> rpn, std::vector<string>& args)
 {
 	using namespace std::placeholders;
 	
@@ -336,7 +342,7 @@ makeChain(std::list<string> rpn, std::list<string>& args)
 		}
 	}
 
-	return bind(wrap, _1, funcs.back());
+	return bind(wrap, _1, args.size(), funcs.back());
 }
 ///**
 // * @brief Example Evaluation function
