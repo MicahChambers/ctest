@@ -27,7 +27,7 @@ const std::function<double(double,double)> MATHFUNC[] = {
 	[](double v1, double v2){return 0;}
 };
 
-std::function<double(std::list<double>&)>
+std::function<double(std::list<double>)>
 makeChain(std::list<std::string> rpn, std::list<std::string>& args);
 
 /**

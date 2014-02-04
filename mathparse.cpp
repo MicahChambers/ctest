@@ -216,16 +216,16 @@ std::list<string> reorder(std::string str)
 	
 }
 		
-double getV(std::list<double>& args)
+double getV(std::vector<double>& args)
 {
-	double A = args.front();
-	args.pop_front();
+	double A = args.back();
+	args.pop_back();
 	return A;
 }
 
-double procV(std::list<double>& args, 
-		std::function<double(std::list<double>&)> bef1, 
-		std::function<double(std::list<double>&)> bef2,
+double procV(std::vector<double>& args, 
+		std::function<double(std::vector<double>&)> bef1, 
+		std::function<double(std::vector<double>&)> bef2,
 		std::function<double(double,double)> fc)
 {
 	double A = bef1(args);
@@ -234,12 +234,13 @@ double procV(std::list<double>& args,
 	return fc(A, B);
 }
 
-double wrap(std::list<double> args, std::function<double(std::list<double>&)> f)
+double wrap(std::list<double> args, std::function<double(std::vector<double>&)> f)
 {
-	return f(args);
+	std::vector<double> fargs(args.begin(), args.end());
+	return f(fargs);
 }
 
-std::function<double(std::list<double>&)>
+std::function<double(std::list<double>)>
 makeChain(std::list<string> rpn, std::list<string>& args)
 {
 	using namespace std::placeholders;
@@ -254,7 +255,7 @@ makeChain(std::list<string> rpn, std::list<string>& args)
 	cout << "RPN: " << ostr.str() << endl;
 #endif //NDEBUG
 
-	std::vector<std::function<double(std::list<double>&)>> funcs;
+	std::vector<std::function<double(std::vector<double>&)>> funcs;
 
 	for(auto it = rpn.begin(); it != rpn.end(); it++) {
 
@@ -332,7 +333,7 @@ makeChain(std::list<string> rpn, std::list<string>& args)
 	args.clear();
 	for(auto it = rpn.begin() ; it != rpn.end(); it++) {
 		if(MATHOPS.find((*it)[0]) == string::npos) {
-			args.push_back(it->c_str());
+			args.push_front(it->c_str());
 		}
 	}
 

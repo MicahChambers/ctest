@@ -77,9 +77,12 @@ int main(int argc, char** argv)
 	auto foo = makeChain(rpn, args);
 
 	std::list<double> fargs;
+	cerr << "Args: ";
 	for(auto it = args.begin() ; it != args.end(); it++) {
 		fargs.push_back(atof(it->c_str()));
+		cerr << *it << ",";
 	}
+	cerr << endl;
 
 	cerr << bigmath(3,1,4,1.1,.5,3,3,3.3) << "vs " << foo(fargs) << endl;
 
