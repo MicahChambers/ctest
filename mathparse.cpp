@@ -101,7 +101,7 @@ OperandT gettoke(int& pos, string str, bool prevop)
 		if(pos == str.size() || str[pos] != ']') {
 			cerr << "Error Parsing input, it looks like you are missing a closing"
 				"bracket, or have not provided a legal index " 
-				<< endl << str << endl << setw(beg+1) << '^' << endl;
+				<< endl << str << endl << std::setw(beg+1) << '^' << endl;
 			return fail;
 		}
 		str2 += str.substr(beg, ++pos-beg);
@@ -145,7 +145,7 @@ std::list<string> reorder(std::string str)
 	for(int ii = 0; ii < str.length(); ii++) {
 		if(!isprint(str[ii])) {
 			cerr << "Error, not sure what this character is: " << endl << str
-					<< setw(ii) << "^" << endl; 
+					<< std::setw(ii) << "^" << endl; 
 			return outqueue;
 		}
 		if(!isspace(str[ii])) 
