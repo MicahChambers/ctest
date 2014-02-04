@@ -70,7 +70,10 @@ int main(int argc, char** argv)
 	if(rpn.empty()) {
 		return -1;
 	}
-	if(eval(rpn) < 0) {
-		return -1;
-	}
+
+	std::list<string> args;
+	auto foo = makeChain(rpn, args);
+//	if(eval(rpn) < 0) {
+//		return -1;
+//	}
 }

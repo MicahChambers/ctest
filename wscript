@@ -80,6 +80,7 @@ def build(bld):
 	bld.program(target='sort', source='sort.cpp')
 	bld.program(target='round_factor', source='round_factor.cpp')
 	bld.program(target='math', source='math.cpp mathparse.cpp')
+	bld.program(target='bind', source='bind.cpp')
 #	bld.shlib(target='template', source='template_shared_object.cpp')
 #	bld.program(target='template_user', source=' template_user.cpp', use='template')
 

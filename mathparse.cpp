@@ -2,16 +2,20 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <functional>
 #include <list>
 
 #include "mathparse.h"
 
-using std::list;
+//using std::list;
 using std::string;
 using std::cout;
 using std::endl;
 using std::cerr;
-using std::setw;
+//using std::vector;
+//using std::function;
+//using std::shared_ptr;
+//using std::setw;
 
 struct OperandT
 {
@@ -108,7 +112,7 @@ OperandT gettoke(int& pos, string str, bool prevop)
 		return tmp;
 	} else {
 		cerr << "Error Parsing input at " << endl
-				<< str << endl << setw(pos+1) << '^' << endl;
+				<< str << endl << std::setw(pos+1) << '^' << endl;
 		return fail;
 	}
 	return fail;
@@ -129,13 +133,13 @@ string makestring(char c)
  *
  * @return 		Output RPN expression as list
  */
-list<string> reorder(std::string str)
+std::list<string> reorder(std::string str)
 {
 	int pos = 0;
 	int prev = -1;
 
-	list<string> outqueue;
-	list<char> opstack;
+	std::list<string> outqueue;
+	std::list<char> opstack;
 
 	int jj = 0;
 	for(int ii = 0; ii < str.length(); ii++) {
@@ -171,7 +175,7 @@ list<string> reorder(std::string str)
 					opstack.pop_front();
 					if(opstack.empty()) {
 						cerr << "Error, closed paren was never opened" << endl;
-						return list<string>();
+						return std::list<string>();
 					}
 				}
 				opstack.pop_front();
@@ -202,7 +206,7 @@ list<string> reorder(std::string str)
 	while(!opstack.empty()) {
 		if(opstack.front() == '(') {
 			cerr << "Error, unmatched paranthesis remains" << endl;
-			return list<string>();
+			return std::list<string>();
 		}
 		outqueue.push_back(makestring(opstack.front()));
 		opstack.pop_front();
@@ -211,7 +215,182 @@ list<string> reorder(std::string str)
 	return outqueue;
 	
 }
+		
+double getV(std::list<double>& args)
+{
+	double A = args.front();
+	args.pop_front();
+	return A;
+}
 
+double procV(std::list<double>& args, 
+		std::function<double(std::list<double>&)> bef1, 
+		std::function<double(std::list<double>&)> bef2,
+		std::function<double(double,double)> fc)
+{
+	cerr << "Array: ";
+	for(auto it = args.begin(); it != args.end(); it++)
+		cerr << *it << ",";
+	cerr << endl;
+	cerr << &bef1 << endl;
+	cerr << &bef2 << endl;
+
+	double A = bef1(args);
+	double B = bef2(args);
+
+	cerr << "Evaluating: ";
+	cerr << &fc << " with " << A << ", " << B << endl;
+	cerr << endl;
+	return fc(A, B);
+}
+
+string traverse_help(std::list<string>::iterator& it, std::list<string>& rpn, 
+		std::list<string>& args)
+{
+	string orig = *it;
+	cerr << "enter: " << orig << "It: " << *it << endl;
+	cerr << "enter: " << orig << "RPN: ";
+	for(auto tit = rpn.begin(); tit != rpn.end(); tit++) {
+		cerr<< *tit << " ";
+	}
+	cerr << endl;
+	cerr << "Args: ";
+	for(auto tit = args.begin(); tit != args.end(); tit++) {
+		cerr<< *tit << " ";
+	}
+	cerr << endl;
+
+	if(MATHOPS.find(*it) != string::npos) {
+		//operator
+		--it;
+		string s1 = traverse_help(it, rpn, args);
+		--it;
+		string s2 = traverse_help(it, rpn, args);
+		args.push_back(s2);
+		args.push_back(s1);
+		return "!";
+	} else {
+		string tmp = *it;
+		it = rpn.erase(it);
+		return tmp;
+	}
+}
+
+void traverse(std::list<string> rpn, std::list<string>& args)
+{
+	auto it = rpn.end();
+	--it;
+	traverse_help(it, rpn, args);
+}
+
+std::function<double(const std::vector<double>&)>
+makeChain(std::list<string> rpn, std::list<string> args)
+{
+	using namespace std::placeholders;
+	
+
+	for(int ii = 0 ; ii < 5; ii++) {
+		cerr << MATHOPS[ii] << ":" << &MATHFUNC[ii] << endl;
+	}
+
+	std::vector<string> arglist;
+	std::ostringstream ostr("");
+	for(auto it = rpn.begin(); it != rpn.end(); it++) {
+		ostr << *it << " ";
+	}
+	cout << "RPN: " << ostr.str() << endl;
+
+	std::vector<std::function<double(std::list<double>&)>> funcs;
+
+	for(auto it = rpn.begin(); it != rpn.end(); it++) {
+
+		size_t opi = MATHOPS.find((*it)[0]);
+		cerr << "Op: ";
+		cerr << "Arglist: ";
+		for(auto it = arglist.begin(); it != arglist.end(); it++) 
+			cerr << *it << ",";
+		cerr << endl;
+		if(opi != string::npos) {
+
+			if(arglist.size() < 2) {
+				cerr << "Error, invalid expression, not enough args!" << endl;
+				return NULL;
+			}
+			
+			if(arglist[arglist.size()-1] == "!" && 
+					arglist[arglist.size()-2] == "!") {
+
+				auto f1 = funcs.back();
+				funcs.pop_back();
+				
+				auto f2 = funcs.back();
+				funcs.pop_back();
+
+				auto newfunc = bind(procV, _1, f2, f1, MATHFUNC[opi]);
+				funcs.push_back(newfunc);
+				
+				//take the used arguments off the arglist
+				arglist.pop_back();
+				arglist.pop_back();
+			} else if(arglist[arglist.size()-1] == "!") {
+				auto f1 = funcs.back();
+				funcs.pop_back();
+				
+				auto newfunc = bind(procV, _1, f1, getV, MATHFUNC[opi]);
+				funcs.push_back(newfunc);
+				
+				//take the used arguments off the arglist
+				arglist.pop_back();
+				args.push_back(arglist.back());
+				arglist.pop_back();
+			} else if(arglist[arglist.size()-2] == "!") {
+				auto f2 = funcs.back();
+				funcs.pop_back();
+				
+				auto newfunc = bind(procV, _1, getV, f2, MATHFUNC[opi]);
+				funcs.push_back(newfunc);
+				//take the used arguments off the arglist
+				args.push_back(arglist.back());
+				arglist.pop_back();
+				arglist.pop_back();
+			} else {
+				auto newfunc = bind(procV, _1, getV, getV, MATHFUNC[opi]);
+				funcs.push_back(newfunc);
+				
+				std::string a = arglist.back();
+				arglist.pop_back();
+				std::string b = arglist.back();
+				arglist.pop_back();
+				args.push_back(b);
+				args.push_back(a);
+			} 
+
+			arglist.push_back("!");
+		} else {
+			//add operand to arg stack
+			arglist.push_back(*it);
+		}
+	}
+	
+//	traverse(rpn, args);
+
+	if(arglist.size() != 1) {
+		cerr << "Error Too Many Terms!" << endl;
+		return NULL;
+	}
+
+
+
+	std::list<double> fargs;
+	for(auto it = args.begin() ; it != args.end(); it++) {
+		if(*it != "!")
+			fargs.push_back(atof(it->c_str()));
+	}
+
+	funcs.back()(fargs);
+
+	return 0;
+}
 ///**
 // * @brief Example Evaluation function
 // *
