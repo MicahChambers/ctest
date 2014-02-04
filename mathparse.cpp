@@ -235,6 +235,8 @@ double procV(std::list<double>& args,
 	for(auto it = args.begin(); it != args.end(); it++)
 		cerr << *it << ",";
 	cerr << endl;
+	cerr << &bef1 << endl;
+	cerr << &bef2 << endl;
 
 	double A = bef1(args);
 	double B = bef2(args);
@@ -327,7 +329,7 @@ makeChain(std::list<string> rpn, std::list<string> args)
 				auto f2 = funcs.back();
 				funcs.pop_back();
 
-				auto newfunc = bind(procV, _1, f1, f2, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, f2, f1, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				
 				//take the used arguments off the arglist
@@ -342,6 +344,7 @@ makeChain(std::list<string> rpn, std::list<string> args)
 				
 				//take the used arguments off the arglist
 				arglist.pop_back();
+				args.push_back(arglist.back());
 				arglist.pop_back();
 			} else if(arglist[arglist.size()-2] == "!") {
 				auto f2 = funcs.back();
@@ -350,14 +353,19 @@ makeChain(std::list<string> rpn, std::list<string> args)
 				auto newfunc = bind(procV, _1, getV, f2, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				//take the used arguments off the arglist
+				args.push_back(arglist.back());
 				arglist.pop_back();
 				arglist.pop_back();
 			} else {
 				auto newfunc = bind(procV, _1, getV, getV, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
-
+				
+				std::string a = arglist.back();
 				arglist.pop_back();
+				std::string b = arglist.back();
 				arglist.pop_back();
+				args.push_back(b);
+				args.push_back(a);
 			} 
 
 			arglist.push_back("!");
@@ -367,7 +375,7 @@ makeChain(std::list<string> rpn, std::list<string> args)
 		}
 	}
 	
-	traverse(rpn, args);
+//	traverse(rpn, args);
 
 	if(arglist.size() != 1) {
 		cerr << "Error Too Many Terms!" << endl;
