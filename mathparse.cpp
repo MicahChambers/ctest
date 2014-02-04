@@ -247,7 +247,7 @@ double procV(std::list<double>& args,
 	return fc(A, B);
 }
 
-string traverse_help(std::list<string>::iterator& it, std::list<string>& rpn, 
+string traverse_help(std::list<string>::iterator it, std::list<string>& rpn, 
 		std::list<string>& args)
 {
 	string orig = *it;
@@ -339,7 +339,7 @@ makeChain(std::list<string> rpn, std::list<string> args)
 				auto f1 = funcs.back();
 				funcs.pop_back();
 				
-				auto newfunc = bind(procV, _1, f1, getV, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, getV, f1, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				
 				//take the used arguments off the arglist
@@ -350,7 +350,7 @@ makeChain(std::list<string> rpn, std::list<string> args)
 				auto f2 = funcs.back();
 				funcs.pop_back();
 				
-				auto newfunc = bind(procV, _1, getV, f2, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, f2, getV, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				//take the used arguments off the arglist
 				args.push_back(arglist.back());
@@ -385,10 +385,21 @@ makeChain(std::list<string> rpn, std::list<string> args)
 
 
 	std::list<double> fargs;
-	for(auto it = args.begin() ; it != args.end(); it++) {
-		if(*it != "!")
+//	cerr << "Args: ";
+//	for(auto it = args.begin() ; it != args.end(); it++) {
+//		fargs.push_back(atof(it->c_str()));
+//		cerr << fargs.back() << ", " ;
+//	}
+//	cerr << endl;
+	cerr << "Args: ";
+	for(auto it = rpn.begin() ; it != rpn.end(); it++) {
+		if(MATHOPS.find((*it)[0]) == string::npos) {
 			fargs.push_back(atof(it->c_str()));
+			cerr << fargs.back() << ", " ;
+		}
 	}
+	cerr << endl;
+
 
 	funcs.back()(fargs);
 
