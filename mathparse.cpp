@@ -245,6 +245,44 @@ double procV(std::list<double>& args,
 	return fc(A, B);
 }
 
+string traverse_help(std::list<string>::iterator& it, std::list<string>& rpn, 
+		std::list<string>& args)
+{
+	string orig = *it;
+	cerr << "enter: " << orig << "It: " << *it << endl;
+	cerr << "enter: " << orig << "RPN: ";
+	for(auto tit = rpn.begin(); tit != rpn.end(); tit++) {
+		cerr<< *tit << " ";
+	}
+	cerr << endl;
+	cerr << "Args: ";
+	for(auto tit = args.begin(); tit != args.end(); tit++) {
+		cerr<< *tit << " ";
+	}
+	cerr << endl;
+
+	if(MATHOPS.find(*it) != string::npos) {
+		//operator
+		--it;
+		string s1 = traverse_help(it, rpn, args);
+		--it;
+		string s2 = traverse_help(it, rpn, args);
+		args.push_back(s2);
+		args.push_back(s1);
+		return "!";
+	} else {
+		string tmp = *it;
+		it = rpn.erase(it);
+		return tmp;
+	}
+}
+
+void traverse(std::list<string> rpn, std::list<string>& args)
+{
+	auto it = rpn.end();
+	--it;
+	traverse_help(it, rpn, args);
+}
 
 std::function<double(const std::vector<double>&)>
 makeChain(std::list<string> rpn, std::list<string> args)
@@ -328,6 +366,8 @@ makeChain(std::list<string> rpn, std::list<string> args)
 			arglist.push_back(*it);
 		}
 	}
+	
+	traverse(rpn, args);
 
 	if(arglist.size() != 1) {
 		cerr << "Error Too Many Terms!" << endl;
@@ -338,8 +378,8 @@ makeChain(std::list<string> rpn, std::list<string> args)
 
 	std::list<double> fargs;
 	for(auto it = args.begin() ; it != args.end(); it++) {
-		fargs.push_front(atof(it->c_str()));
-		cerr << fargs.front() << endl;
+		if(*it != "!")
+			fargs.push_back(atof(it->c_str()));
 	}
 
 	funcs.back()(fargs);
