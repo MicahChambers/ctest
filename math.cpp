@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 	std::list<string> args;
 	auto foo = makeChain(rpn, args);
 
-	std::list<double> fargs;
+	std::vector<double> fargs;
 	cerr << "Args: ";
 	for(auto it = args.begin() ; it != args.end(); it++) {
 		fargs.push_back(atof(it->c_str()));

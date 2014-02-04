@@ -216,31 +216,30 @@ std::list<string> reorder(std::string str)
 	
 }
 		
-double getV(std::vector<double>& args)
+double getV(const std::vector<double>& args, size_t& ii)
 {
-	double A = args.back();
-	args.pop_back();
-	return A;
+	return args[ii++];
 }
 
-double procV(std::vector<double>& args, 
-		std::function<double(std::vector<double>&)> bef1, 
-		std::function<double(std::vector<double>&)> bef2,
+double procV(const std::vector<double>& args, size_t& ii,
+		std::function<double(const std::vector<double>&, size_t&)> bef1, 
+		std::function<double(const std::vector<double>&, size_t&)> bef2,
 		std::function<double(double,double)> fc)
 {
-	double A = bef1(args);
-	double B = bef2(args);
+	double A = bef1(args, ii);
+	double B = bef2(args, ii);
 
 	return fc(A, B);
 }
 
-double wrap(std::list<double> args, std::function<double(std::vector<double>&)> f)
+double wrap(const std::vector<double>& args, 
+			std::function<double(const std::vector<double>&, size_t&)> f)
 {
-	std::vector<double> fargs(args.begin(), args.end());
-	return f(fargs);
+	size_t ii = 0;
+	return f(args, ii);	
 }
 
-std::function<double(std::list<double>)>
+std::function<double(const std::vector<double>&)>
 makeChain(std::list<string> rpn, std::list<string>& args)
 {
 	using namespace std::placeholders;
@@ -255,7 +254,7 @@ makeChain(std::list<string> rpn, std::list<string>& args)
 	cout << "RPN: " << ostr.str() << endl;
 #endif //NDEBUG
 
-	std::vector<std::function<double(std::vector<double>&)>> funcs;
+	std::vector<std::function<double(const std::vector<double>&, size_t&)>> funcs;
 
 	for(auto it = rpn.begin(); it != rpn.end(); it++) {
 
@@ -283,7 +282,7 @@ makeChain(std::list<string> rpn, std::list<string>& args)
 				auto f2 = funcs.back();
 				funcs.pop_back();
 
-				auto newfunc = bind(procV, _1, f2, f1, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, _2, f2, f1, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				
 				//take the used arguments off the arglist
@@ -293,7 +292,7 @@ makeChain(std::list<string> rpn, std::list<string>& args)
 				auto f1 = funcs.back();
 				funcs.pop_back();
 				
-				auto newfunc = bind(procV, _1, getV, f1, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, _2, getV, f1, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				
 				//take the used arguments off the arglist
@@ -303,13 +302,13 @@ makeChain(std::list<string> rpn, std::list<string>& args)
 				auto f2 = funcs.back();
 				funcs.pop_back();
 				
-				auto newfunc = bind(procV, _1, f2, getV, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, _2, f2, getV, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				//take the used arguments off the arglist
 				arglist.pop_back();
 				arglist.pop_back();
 			} else {
-				auto newfunc = bind(procV, _1, getV, getV, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, _2, getV, getV, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				
 				std::string a = arglist.back();
@@ -333,7 +332,7 @@ makeChain(std::list<string> rpn, std::list<string>& args)
 	args.clear();
 	for(auto it = rpn.begin() ; it != rpn.end(); it++) {
 		if(MATHOPS.find((*it)[0]) == string::npos) {
-			args.push_front(it->c_str());
+			args.push_back(it->c_str());
 		}
 	}
 
