@@ -81,7 +81,9 @@ double bigmath(const std::vector<double>& in)
 int main(int argc, char** argv)
 {
 	if(argc != 2) {
-		return test() == true;
+		bool result = test();
+		speedtest();
+		return result != true;
 	}
 	
 	list<string> rpn = reorder(argv[1]);
@@ -92,7 +94,7 @@ int main(int argc, char** argv)
 	std::vector<string> args;
 	std::vector<double> fargs;
 	
-	auto foo = makeChain(rpn, args);
+	auto foo = makeRecMath(rpn, args);
 	if(!foo) 
 		return -1;
 

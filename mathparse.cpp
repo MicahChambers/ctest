@@ -4,6 +4,9 @@
 #include <sstream>
 #include <functional>
 #include <list>
+#include <cassert>
+#include <ctime>
+#include <random>
 
 #include "mathparse.h"
 
@@ -232,7 +235,7 @@ double procV(const std::vector<double>& args, size_t& ii,
 	return fc(A, B);
 }
 
-double wrap(const std::vector<double>& args, const size_t sz,
+double recurseWrap(const std::vector<double>& args, const size_t sz,
 			std::function<double(const std::vector<double>&, size_t&)> f)
 {
 	size_t ii = 0;
@@ -246,7 +249,7 @@ double wrap(const std::vector<double>& args, const size_t sz,
 }
 
 std::function<double(const std::vector<double>&)>
-makeChain(std::list<string> rpn, std::vector<string>& args)
+makeRecMath(std::list<string> rpn, std::vector<string>& args)
 {
 	using namespace std::placeholders;
 	
@@ -342,7 +345,7 @@ makeChain(std::list<string> rpn, std::vector<string>& args)
 		}
 	}
 
-	return bind(wrap, _1, args.size(), funcs.back());
+	return bind(recurseWrap, _1, args.size(), funcs.back());
 }
 ///**
 // * @brief Example Evaluation function
@@ -392,6 +395,81 @@ makeChain(std::list<string> rpn, std::vector<string>& args)
 //	return 0;
 //}
 
+/**
+ * @brief Example Evaluation function
+ *
+ * @param rpn
+ *
+ * @return 
+ */
+double loopMathWrap(const std::vector<double>& args, string ops)
+{
+	std::list<double> stack;
+	double lhs, rhs;
+	
+	auto it = args.begin();
+	for(size_t ii = 0 ; ii < ops.length(); ii++) {
+		switch (ops[ii]) {
+			case '+':
+				rhs = stack.back(); 
+				stack.pop_back();
+				lhs = stack.back(); 
+				stack.back() = lhs+rhs;
+				break;
+			case '-':
+				rhs = stack.back(); 
+				stack.pop_back();
+				lhs = stack.back(); 
+				stack.back() = lhs-rhs;
+				break;
+			case '*':
+				rhs = stack.back(); 
+				stack.pop_back();
+				lhs = stack.back(); 
+				stack.back() = lhs*rhs;
+				break;
+			case '/':
+				rhs = stack.back(); 
+				stack.pop_back();
+				lhs = stack.back(); 
+				stack.back() = lhs/rhs;
+				break;
+			case '^':
+				rhs = stack.back(); 
+				stack.pop_back();
+				lhs = stack.back(); 
+				stack.back() = pow(lhs,rhs);
+				break;
+			case '!': //load
+				stack.push_back(*it);
+				it++;
+				break;
+		}
+	}
+	assert(stack.size() == 1);
+	return stack.back();
+}
+
+std::function<double(const std::vector<double>&)>
+makeLoopMath(std::list<string> rpn, std::vector<string>& args)
+{
+	using namespace std::placeholders;
+	
+	std::ostringstream oss;
+	args.clear();
+	for(auto it = rpn.begin(); it != rpn.end(); it++) {
+		if(MATHOPS.find((*it)[0]) == string::npos) {
+			oss << '!';
+			args.push_back((*it));
+		} else {
+			oss << (*it)[0];
+		}
+	}
+
+	return bind(loopMathWrap, _1, oss.str());
+}
+
+
 double testmath(double a, double b, double c, double d, double e, double f, double g, double h)
 {
 	return pow(a*b-pow(c,pow(d,e)) + f*g,h);
@@ -407,7 +485,8 @@ bool test()
 	}
 
 	std::vector<string> args;
-	auto foo = makeChain(rpn, args);
+	auto recursiveChain = makeRecMath(rpn, args);
+	auto forChain = makeLoopMath(rpn, args);
 
 	std::vector<double> fargs;
 	for(auto it = args.begin() ; it != args.end(); it++) {
@@ -415,15 +494,116 @@ bool test()
 	}
 
 	double a = testmath(3,1,4,1.1,.5,3,3,3.3);
-	double b = foo(fargs);
-
+	double b = recursiveChain(fargs);
+	double c = forChain(fargs);
+	
+	bool success = true;
+	cerr << "Recursive" << endl;
 	cerr << a << " == " << b;
 	if(fabs(a-b) < 0.0000000001) {
 		cerr << ", True" << endl;
-		return true;
 	} else {
 		cerr << ", False" << endl;
-		return false;
+		success = false;
 	}
+
+	cerr << "Iterative" << endl;
+	cerr << a << " == " << c;
+	if(fabs(a-c) < 0.0000000001) {
+		cerr << ", True" << endl;
+	} else {
+		cerr << ", False" << endl;
+		success = false;
+	}
+
+	return success;
 }
 
+void speedtest(size_t iters)
+{
+	string str = "(3*1-4^1.1^.5 + 3*3)^3.3";
+
+	std::list<string> rpn = reorder(str);
+	if(rpn.empty()) {
+		return ;
+	}
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0, 10);
+
+	std::vector<string> args;
+	auto recursiveChain = makeRecMath(rpn, args);
+	auto forChain = makeLoopMath(rpn, args);
+
+	std::vector<double> fargs(args.size());
+
+	// store the results, so that compiled math doesn't get over optimized
+	std::list<double> results;
+
+	/* 
+	 * Compiled Math
+	 */
+	auto c1 = clock();
+	for(int ii = 0 ; ii < iters ; ii++) {
+		results.push_back(testmath(dis(gen),dis(gen),dis(gen),dis(gen),dis(gen),
+					dis(gen),dis(gen),dis(gen)));
+	}
+	auto c2 = clock();
+	double base = ((double)(c2-c1))/CLOCKS_PER_SEC;
+	fprintf(stderr, "base %i ticks (%f sec) (%fx)\n", c2-c1, base, base/base);
+	results.clear();
+
+	/* 
+	 * Test of Recursive 'elegent-but-slow' based math 
+	 */
+	c1 = clock();
+	for(int ii = 0 ; ii < iters ; ii++) {
+		for(int jj = 0 ; jj < fargs.size(); jj++)
+			fargs[jj] = dis(gen);
+		results.push_back(recursiveChain(fargs));
+	}
+	c2 = clock();
+	double recu = ((double)(c2-c1))/CLOCKS_PER_SEC;
+	fprintf(stderr, "recursive %i ticks (%f sec) (%fx)\n", c2-c1, recu, recu/base);
+	results.clear();
+
+	/* 
+	 * Test of For-Loop/Case based math 
+	 */
+	c1 = clock();
+	for(int ii = 0 ; ii < iters ; ii++) {
+		for(int jj = 0 ; jj < fargs.size(); jj++) {
+			fargs[jj] = dis(gen);
+		}
+		results.push_back(forChain(fargs));
+	}
+	c2 = clock();
+	double forl = ((double)(c2-c1))/CLOCKS_PER_SEC;
+	fprintf(stderr, "for loop %i ticks (%f sec) (%fx)\n", c2-c1, forl, forl/base);
+	results.clear();
+	
+	/* 
+	 * Test of non-wrapped math expresssion
+	 */
+	std::ostringstream oss;
+	for(auto it = rpn.begin(); it != rpn.end(); it++) {
+		if(MATHOPS.find((*it)[0]) == string::npos) {
+			oss << '!';
+		} else {
+			oss << (*it)[0];
+		}
+	}
+	c1 = clock();
+	for(int ii = 0 ; ii < iters ; ii++) {
+		for(int jj = 0 ; jj < fargs.size(); jj++)
+			fargs[jj] = dis(gen);
+		results.push_back(loopMathWrap(fargs, oss.str()));
+	}
+	c2 = clock();
+	results.clear();
+	
+	double forlNoWrap = ((double)(c2-c1))/CLOCKS_PER_SEC;
+	fprintf(stderr, "for loop (no wrapper) %i ticks (%f sec) (%fx)\n", 
+			c2-c1, forlNoWrap, forlNoWrap/base);
+}

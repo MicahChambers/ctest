@@ -41,7 +41,10 @@ const std::function<double(double,double)> MATHFUNC[] = {
  * 						value for the matching string from vector "args"
  */
 std::function<double(const std::vector<double>&)>
-makeChain(std::list<std::string> rpn, std::vector<std::string>& args);
+makeRecMath(std::list<std::string> rpn, std::vector<std::string>& args);
+
+std::function<double(const std::vector<double>&)>
+makeLoopMath(std::list<std::string> rpn, std::vector<std::string>& args);
 
 /**
  * @brief Takes a string of infix math operations and converts them to RPN
@@ -60,3 +63,4 @@ std::list<std::string> reorder(std::string str);
  * @return Success
  */
 bool test();
+void speedtest(size_t iters = 10000);
