@@ -94,13 +94,14 @@ int main(int argc, char** argv)
 	std::vector<string> args;
 	std::vector<double> fargs;
 	
-	auto foo = makeRecMath(rpn, args);
-	if(!foo) 
+	auto loop = makeRecMath(rpn, args);
+	if(!loop) 
 		return -1;
 
-	for(auto it = args.begin() ; it != args.end(); it++) 
+	for(auto it = args.begin() ; it != args.end(); it++) {
 		fargs.push_back(atof(it->c_str()));
+	}
 
-	cerr << foo(fargs) << endl;
+	cerr << loop(fargs) << endl;
 
 }

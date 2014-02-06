@@ -21,10 +21,10 @@ const std::function<double(double,double)> MATHFUNC[] = {
 	[](double v1, double v2){return v1*v2;},
 	[](double v1, double v2){return v1/v2;},
 	[](double v1, double v2){return pow(v1,v2);},
-	[](double v1, double v2){return 0;},
-	[](double v1, double v2){return 0;},
-	[](double v1, double v2){return 0;},
-	[](double v1, double v2){return 0;}
+	[](double v1, double v2){return 0*v1*v2;},
+	[](double v1, double v2){return 0*v1*v2;},
+	[](double v1, double v2){return 0*v1*v2;},
+	[](double v1, double v2){return 0*v1*v2;}
 };
 
 
@@ -63,4 +63,5 @@ std::list<std::string> reorder(std::string str);
  * @return Success
  */
 bool test();
-void speedtest(size_t iters = 10000);
+void speedtest(int iters = 10000);
+

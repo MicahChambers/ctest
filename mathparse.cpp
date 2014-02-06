@@ -69,6 +69,34 @@ OperandT gettoke(int& pos, string str, bool prevop)
 
 		if(pos > beg)
 			str2 = str.substr(beg, pos-beg);
+		
+		// check for bracketed expression after literal string
+		if(str[pos] == '[') {
+			beg = pos++;
+
+			//only allow commas if there is numeric input
+			if(str[pos] == '-' || str[pos] == '+' || isdecimal(str[pos])) {
+
+				//allow for preceeding +/-
+				if(str[pos] == '-' || str[pos] == '+')
+					pos++;
+
+				for(; pos < (int)str.size() && (str[pos] == ',' || isdecimal(str[pos]));  pos++) 
+						continue;
+			} else if(isalpha(str[pos])) {
+			//if there is a variable in the [] then only allow one
+				for(; pos < (int)str.size() && isalpha(str[pos]);  pos++)
+					continue;
+			}
+
+			if(pos == (int)str.size() || str[pos] != ']') {
+				cerr << "Error Parsing input, it looks like you are missing a closing"
+					"bracket, or have not provided a legal index " 
+					<< endl << str << endl << std::setw(beg+1) << '^' << endl;
+				return fail;
+			}
+			str2 += str.substr(beg, ++pos-beg);
+		}
 
 	} else {
 		//if it is a number, get the whole number, including prefix +/-
@@ -81,37 +109,6 @@ OperandT gettoke(int& pos, string str, bool prevop)
 
 		if(pos > beg)
 			str2 = str.substr(beg, pos-beg);
-	}
-
-	/* 
-	 * check for bracketed expression after literal string
-	 */
-	
-	if(str[pos] == '[') {
-		beg = pos++;
-
-		//only allow commas if there is numeric input
-		if(str[pos] == '-' || str[pos] == '+' || isdecimal(str[pos])) {
-
-			//allow for preceeding +/-
-			if(str[pos] == '-' || str[pos] == '+')
-				pos++;
-
-			for(; pos < (int)str.size() && (str[pos] == ',' || isdecimal(str[pos]));  pos++) 
-					continue;
-		} else if(isalpha(str[pos])) {
-		//if there is a variable in the [] then only allow one
-			for(; pos < (int)str.size() && isalpha(str[pos]);  pos++)
-				continue;
-		}
-
-		if(pos == (int)str.size() || str[pos] != ']') {
-			cerr << "Error Parsing input, it looks like you are missing a closing"
-				"bracket, or have not provided a legal index " 
-				<< endl << str << endl << std::setw(beg+1) << '^' << endl;
-			return fail;
-		}
-		str2 += str.substr(beg, ++pos-beg);
 	}
 
 	if(str2 != "") {
@@ -219,6 +216,30 @@ std::list<string> reorder(std::string str)
 		opstack.pop_front();
 	}
 
+	size_t varcount = 0;
+	size_t opcount = 0; 
+	for(auto it = outqueue.begin(); it != outqueue.end(); it++) {
+		if(it->length() > 1 || MATHOPS.find(*it) == string::npos) 
+			varcount++;
+		else
+			opcount++;
+	}
+
+	std::ostringstream ostr("");
+	for(auto it = outqueue.begin(); it != outqueue.end(); it++) {
+		ostr << *it << " ";
+	}
+	cout << "RPN: " << ostr.str() << endl;
+
+	if(opcount+1 > varcount) {
+		cerr << "Error, too many operators, not enough arguments" << endl;
+		return std::list<string>();
+	}
+	if(opcount+1 < varcount) {
+		cerr << "Error, too many arguments, not enough operators" << endl;
+		return std::list<string>();
+	}
+
 	return outqueue;
 	
 }
@@ -259,26 +280,16 @@ makeRecMath(std::list<string> rpn, std::vector<string>& args)
 	
 	std::vector<string> arglist;
 
-#ifndef NDEBUG
-	std::ostringstream ostr("");
-	for(auto it = rpn.begin(); it != rpn.end(); it++) {
-		ostr << *it << " ";
-	}
-	cout << "RPN: " << ostr.str() << endl;
-#endif //NDEBUG
-
 	std::vector<std::function<double(const std::vector<double>&, size_t&)>> funcs;
 
 	for(auto it = rpn.begin(); it != rpn.end(); it++) {
 
-		size_t opi = MATHOPS.find((*it)[0]);
-#ifndef NDEBUG
-		cerr << "Op: ";
-		cerr << "Arglist: ";
-		for(auto it = arglist.begin(); it != arglist.end(); it++) 
-			cerr << *it << ",";
-		cerr << endl;
-#endif //NDEBUG
+		// operations should have length 1, literals can sometimes have -+ at 
+		// front
+		size_t opi = string::npos;
+		if(it->length() == 1)
+			opi = MATHOPS.find((*it)[0]);
+
 		if(opi != string::npos) {
 
 			if(arglist.size() < 2) {
@@ -344,8 +355,8 @@ makeRecMath(std::list<string> rpn, std::vector<string>& args)
 
 	args.clear();
 	for(auto it = rpn.begin() ; it != rpn.end(); it++) {
-		if(MATHOPS.find((*it)[0]) == string::npos) {
-			args.push_back(it->c_str());
+		if(it->length() > 1 || MATHOPS.find((*it)[0]) == string::npos) {
+			args.push_back(*it);
 		}
 	}
 
@@ -406,8 +417,14 @@ makeRecMath(std::list<string> rpn, std::vector<string>& args)
  *
  * @return 
  */
-double loopMathWrap(const std::vector<double>& args, string ops)
+double loopMathWrap(const std::vector<double>& args, string ops, size_t sz)
 {
+	if(args.size() != sz) {
+#ifndef NDEBUG
+		cerr << "Error Incorrect Number of Arguments for the given equation" << endl;
+#endif //NDEBUG
+		return NAN;
+	}
 	std::list<double> stack;
 	double lhs, rhs;
 	
@@ -462,15 +479,15 @@ makeLoopMath(std::list<string> rpn, std::vector<string>& args)
 	std::ostringstream oss;
 	args.clear();
 	for(auto it = rpn.begin(); it != rpn.end(); it++) {
-		if(MATHOPS.find((*it)[0]) == string::npos) {
+		if(it->length() > 1 || MATHOPS.find((*it)[0]) == string::npos) {
 			oss << '!';
-			args.push_back((*it));
+			args.push_back(*it);
 		} else {
 			oss << (*it)[0];
 		}
 	}
 
-	return bind(loopMathWrap, _1, oss.str());
+	return bind(loopMathWrap, _1, oss.str(), args.size());
 }
 
 double testmath(double a, double b, double c, double d, double e, double f, double g, double h)
@@ -522,7 +539,7 @@ bool test()
 	return success;
 }
 
-void speedtest(size_t iters)
+void speedtest(int iters)
 {
 	string str = "(3*1-4^1.1^.5 + 3*3)^3.3";
 
@@ -554,7 +571,7 @@ void speedtest(size_t iters)
 	}
 	auto c2 = clock();
 	double base = ((double)(c2-c1))/CLOCKS_PER_SEC;
-	fprintf(stderr, "base %i ticks (%f sec) (%fx)\n", c2-c1, base, base/base);
+	fprintf(stderr, "base %li ticks (%f sec) (%fx)\n", c2-c1, base, base/base);
 	results.clear();
 
 	/* 
@@ -562,13 +579,13 @@ void speedtest(size_t iters)
 	 */
 	c1 = clock();
 	for(int ii = 0 ; ii < iters ; ii++) {
-		for(int jj = 0 ; jj < fargs.size(); jj++)
+		for(int jj = 0 ; jj < (int)fargs.size(); jj++)
 			fargs[jj] = dis(gen);
 		results.push_back(recursiveChain(fargs));
 	}
 	c2 = clock();
 	double recu = ((double)(c2-c1))/CLOCKS_PER_SEC;
-	fprintf(stderr, "recursive %i ticks (%f sec) (%fx)\n", c2-c1, recu, recu/base);
+	fprintf(stderr, "recursive %li ticks (%f sec) (%fx)\n", c2-c1, recu, recu/base);
 	results.clear();
 
 	/* 
@@ -576,14 +593,14 @@ void speedtest(size_t iters)
 	 */
 	c1 = clock();
 	for(int ii = 0 ; ii < iters ; ii++) {
-		for(int jj = 0 ; jj < fargs.size(); jj++) {
+		for(int jj = 0 ; jj < (int)fargs.size(); jj++) {
 			fargs[jj] = dis(gen);
 		}
 		results.push_back(forChain(fargs));
 	}
 	c2 = clock();
 	double forl = ((double)(c2-c1))/CLOCKS_PER_SEC;
-	fprintf(stderr, "for loop %i ticks (%f sec) (%fx)\n", c2-c1, forl, forl/base);
+	fprintf(stderr, "for loop %li ticks (%f sec) (%fx)\n", c2-c1, forl, forl/base);
 	results.clear();
 	
 	/* 
@@ -599,15 +616,15 @@ void speedtest(size_t iters)
 	}
 	c1 = clock();
 	for(int ii = 0 ; ii < iters ; ii++) {
-		for(int jj = 0 ; jj < fargs.size(); jj++)
+		for(int jj = 0 ; jj < (int)fargs.size(); jj++)
 			fargs[jj] = dis(gen);
-		results.push_back(loopMathWrap(fargs, oss.str()));
+		results.push_back(loopMathWrap(fargs, oss.str(), fargs.size()));
 	}
 	c2 = clock();
 	results.clear();
 	
 	double forlNoWrap = ((double)(c2-c1))/CLOCKS_PER_SEC;
-	fprintf(stderr, "for loop (no wrapper) %i ticks (%f sec) (%fx)\n", 
+	fprintf(stderr, "for loop (no wrapper) %li ticks (%f sec) (%fx)\n", 
 			c2-c1, forlNoWrap, forlNoWrap/base);
 
 }
