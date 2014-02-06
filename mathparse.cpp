@@ -10,15 +10,10 @@
 
 #include "mathparse.h"
 
-//using std::list;
 using std::string;
 using std::cout;
 using std::endl;
 using std::cerr;
-//using std::vector;
-//using std::function;
-//using std::shared_ptr;
-//using std::setw;
 
 struct OperandT
 {
@@ -29,7 +24,7 @@ struct OperandT
 	char op;
 };
 
-bool isnumeric(char c)
+bool isdecimal(char c)
 {
 	return isdigit(c) || c == '.';
 }
@@ -50,7 +45,7 @@ OperandT gettoke(int& pos, string str, bool prevop)
 {
 	OperandT fail = {"", 0};
 
-	if(pos >= str.size())
+	if(pos >= (int)str.size())
 		return fail;
 
 	int beg;
@@ -63,22 +58,27 @@ OperandT gettoke(int& pos, string str, bool prevop)
 		OperandT tmp = {"", str[pos-1]};
 		return tmp;
 	}
-	
+
 	/* 
 	 * Check for non-operator string
 	 */
 
 	if(isalpha(str[pos])) {
 		//if it is a varname, get the whole name
-		for(beg = pos; pos < str.size() && isalpha(str[pos]); pos++) continue;
+		for(beg = pos; pos < (int)str.size() && isalpha(str[pos]); pos++) continue;
 
 		if(pos > beg)
 			str2 = str.substr(beg, pos-beg);
 
 	} else {
-		//if it is a number, get the whole number
-		for(beg = pos; pos < str.size() && isnumeric(str[pos]);  pos++) 
+		//if it is a number, get the whole number, including prefix +/-
+		beg = pos;
+		if(str[pos] == '-' || str[pos] == '+')
+			pos++;
+
+		for(; pos < (int)str.size() && isdecimal(str[pos]);  pos++) 
 			continue;
+
 		if(pos > beg)
 			str2 = str.substr(beg, pos-beg);
 	}
@@ -91,17 +91,21 @@ OperandT gettoke(int& pos, string str, bool prevop)
 		beg = pos++;
 
 		//only allow commas if there is numeric input
-		if(isnumeric(str[pos])) {
-			for(; pos < str.size() && (str[pos] == ',' || isnumeric(str[pos]));  pos++) 
-					continue;
+		if(str[pos] == '-' || str[pos] == '+' || isdecimal(str[pos])) {
 
+			//allow for preceeding +/-
+			if(str[pos] == '-' || str[pos] == '+')
+				pos++;
+
+			for(; pos < (int)str.size() && (str[pos] == ',' || isdecimal(str[pos]));  pos++) 
+					continue;
 		} else if(isalpha(str[pos])) {
 		//if there is a variable in the [] then only allow one
-			for(; pos < str.size() && isalpha(str[pos]);  pos++)
+			for(; pos < (int)str.size() && isalpha(str[pos]);  pos++)
 				continue;
 		}
 
-		if(pos == str.size() || str[pos] != ']') {
+		if(pos == (int)str.size() || str[pos] != ']') {
 			cerr << "Error Parsing input, it looks like you are missing a closing"
 				"bracket, or have not provided a legal index " 
 				<< endl << str << endl << std::setw(beg+1) << '^' << endl;
@@ -145,7 +149,7 @@ std::list<string> reorder(std::string str)
 	std::list<char> opstack;
 
 	int jj = 0;
-	for(int ii = 0; ii < str.length(); ii++) {
+	for(int ii = 0; ii < (int)str.length(); ii++) {
 		if(!isprint(str[ii])) {
 			cerr << "Error, not sure what this character is: " << endl << str
 					<< std::setw(ii) << "^" << endl; 
@@ -469,7 +473,6 @@ makeLoopMath(std::list<string> rpn, std::vector<string>& args)
 	return bind(loopMathWrap, _1, oss.str());
 }
 
-
 double testmath(double a, double b, double c, double d, double e, double f, double g, double h)
 {
 	return pow(a*b-pow(c,pow(d,e)) + f*g,h);
@@ -606,4 +609,6 @@ void speedtest(size_t iters)
 	double forlNoWrap = ((double)(c2-c1))/CLOCKS_PER_SEC;
 	fprintf(stderr, "for loop (no wrapper) %i ticks (%f sec) (%fx)\n", 
 			c2-c1, forlNoWrap, forlNoWrap/base);
+
 }
+
