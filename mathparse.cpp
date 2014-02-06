@@ -392,4 +392,38 @@ makeChain(std::list<string> rpn, std::vector<string>& args)
 //	return 0;
 //}
 
+double testmath(double a, double b, double c, double d, double e, double f, double g, double h)
+{
+	return pow(a*b-pow(c,pow(d,e)) + f*g,h);
+}
+
+bool test()
+{
+	string str = "(3*1-4^1.1^.5 + 3*3)^3.3";
+
+	std::list<string> rpn = reorder(str);
+	if(rpn.empty()) {
+		return -1;
+	}
+
+	std::vector<string> args;
+	auto foo = makeChain(rpn, args);
+
+	std::vector<double> fargs;
+	for(auto it = args.begin() ; it != args.end(); it++) {
+		fargs.push_back(atof(it->c_str()));
+	}
+
+	double a = testmath(3,1,4,1.1,.5,3,3,3.3);
+	double b = foo(fargs);
+
+	cerr << a << " == " << b;
+	if(fabs(a-b) < 0.0000000001) {
+		cerr << ", True" << endl;
+		return true;
+	} else {
+		cerr << ", False" << endl;
+		return false;
+	}
+}
 

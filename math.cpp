@@ -80,37 +80,25 @@ double bigmath(const std::vector<double>& in)
 
 int main(int argc, char** argv)
 {
-	string str = "(3*1-4^1.1^.5 + 3*3)^3.3";
+	if(argc != 2) {
+		return test() == true;
+	}
 	
-	list<string> rpn = reorder(str);
+	list<string> rpn = reorder(argv[1]);
 	if(rpn.empty()) {
 		return -1;
 	}
 
 	std::vector<string> args;
-	auto foo = makeChain(rpn, args);
-
 	std::vector<double> fargs;
-	cerr << "Args: ";
-	for(auto it = args.begin() ; it != args.end(); it++) {
+	
+	auto foo = makeChain(rpn, args);
+	if(!foo) 
+		return -1;
+
+	for(auto it = args.begin() ; it != args.end(); it++) 
 		fargs.push_back(atof(it->c_str()));
-		cerr << *it << ",";
-	}
-	cerr << endl;
 
-	cerr << bigmath(3,1,4,1.1,.5,3,3,3.3) << "vs " << foo(fargs) << endl;
+	cerr << foo(fargs) << endl;
 
-	const int ITERS = 1000000;
-	cerr << "BigMath: " << endl;
-	for(int ii = 0 ; ii < ITERS; ii++) {
-		bigmath(fargs);
-	}
-	cerr << "Dynamic: " << endl;
-	for(int ii = 0 ; ii < ITERS; ii++) {
-		foo(fargs);
-	}
-
-//	if(eval(rpn) < 0) {
-//		return -1;
-//	}
 }

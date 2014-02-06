@@ -78,6 +78,7 @@ def build(bld):
 	bld.program(target='lanczos', source='lanczos.cpp')
 	bld.program(target='hash', source='hash.cpp')
 	bld.program(target='sort', source='sort.cpp')
+	bld.program(target='iter', source='iter.cpp')
 	bld.program(target='round_factor', source='round_factor.cpp')
 	bld.program(target='math', source='math.cpp mathparse.cpp')
 	bld.program(target='bind', source='bind.cpp')
