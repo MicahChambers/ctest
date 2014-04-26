@@ -6,6 +6,28 @@ import re
 
 out = 'build'
 
+def build(bld):
+	for f in 'array copy zero bspline graph sinc linesearch goldensearch'.split(' '):
+		bld.program(source=f+'.cpp', target=f)
+
+	bld.shlib(target='plot', source='plot.cpp tga.cpp')
+	bld.program(target='bspline_regularize', source='bspline_regularize.cpp plot.cpp tga.cpp')
+	bld.program(target='plottest', source='plottest.cpp', use='plot')
+	bld.program(target='gradtest', source='gradtest.cpp', use='plot')
+	bld.program(target='lanczos', source='lanczos.cpp')
+	bld.program(target='hash', source='hash.cpp')
+	bld.program(target='sort', source='sort.cpp')
+	bld.program(target='round_factor', source='round_factor.cpp')
+	bld.program(target='math', source='math.cpp mathparse.cpp')
+	bld.program(target='bind', source='bind.cpp')
+	bld.program(target='case2', source='case2.cpp')
+	bld.program(target='rotate', source='rotate.cpp')
+	bld.program(target='shears', source='shears.cpp')
+	bld.program(target='fmod', source='fmod.cpp')
+#	bld.shlib(target='template', source='template_shared_object.cpp')
+#	bld.program(target='template_user', source=' template_user.cpp', use='template')
+
+
 def configure(conf):
 	join = os.path.join
 	isabs = os.path.isabs
@@ -66,21 +88,4 @@ def gitversion():
 		return "unknown"
 	# we use tags like "python-ecdsa-0.5", so strip the prefix
 	return stdout.decode('utf-8').strip()
-
-def build(bld):
-	for f in 'array copy zero bspline graph sinc linesearch goldensearch'.split(' '):
-		bld.program(source=f+'.cpp', target=f)
-
-	bld.shlib(target='plot', source='plot.cpp tga.cpp')
-	bld.program(target='bspline_regularize', source='bspline_regularize.cpp plot.cpp tga.cpp')
-	bld.program(target='plottest', source='plottest.cpp', use='plot')
-	bld.program(target='gradtest', source='gradtest.cpp', use='plot')
-	bld.program(target='lanczos', source='lanczos.cpp')
-	bld.program(target='hash', source='hash.cpp')
-	bld.program(target='sort', source='sort.cpp')
-	bld.program(target='round_factor', source='round_factor.cpp')
-	bld.program(target='math', source='math.cpp mathparse.cpp')
-	bld.program(target='bind', source='bind.cpp')
-#	bld.shlib(target='template', source='template_shared_object.cpp')
-#	bld.program(target='template_user', source=' template_user.cpp', use='template')
 
