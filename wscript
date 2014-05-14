@@ -28,7 +28,7 @@ def build(bld):
 #	bld.shlib(target='template', source='template_shared_object.cpp')
 #	bld.program(target='template_user', source=' template_user.cpp', use='template')
 	bld.program(target='iter', source='iter.cpp')
-
+	bld.program(target='vector_expand', source='vector_expand.cpp')
 
 def configure(conf):
 	join = os.path.join
