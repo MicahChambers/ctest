@@ -82,6 +82,7 @@ def build(bld):
 	bld.program(target='round_factor', source='round_factor.cpp')
 	bld.program(target='math', source='math.cpp mathparse.cpp')
 	bld.program(target='bind', source='bind.cpp')
+	bld.program(target='vector_expand', source='vector_expand.cpp')
 #	bld.shlib(target='template', source='template_shared_object.cpp')
 #	bld.program(target='template_user', source=' template_user.cpp', use='template')
 
