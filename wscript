@@ -10,10 +10,11 @@ def build(bld):
 	for f in 'array copy zero bspline graph sinc linesearch goldensearch'.split(' '):
 		bld.program(source=f+'.cpp', target=f)
 
-	bld.shlib(target='plot', source='plot.cpp tga.cpp')
+	bld.stlib(target='plot', source='plot.cpp tga.cpp')
 	bld.program(target='bspline_regularize', source='bspline_regularize.cpp plot.cpp tga.cpp')
 	bld.program(target='plottest', source='plottest.cpp', use='plot')
 	bld.program(target='gradtest', source='gradtest.cpp', use='plot')
+	bld.program(target='kerntest', source='kerntest.cpp', use='plot')
 	bld.program(target='lanczos', source='lanczos.cpp')
 	bld.program(target='hash', source='hash.cpp')
 	bld.program(target='sort', source='sort.cpp')
