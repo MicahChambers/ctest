@@ -27,6 +27,7 @@ def build(bld):
 	bld.program(target='fmod', source='fmod.cpp')
 #	bld.shlib(target='template', source='template_shared_object.cpp')
 #	bld.program(target='template_user', source=' template_user.cpp', use='template')
+	bld.program(target='iter', source='iter.cpp')
 
 
 def configure(conf):
@@ -49,14 +50,14 @@ def configure(conf):
 	conf.env.CXXFLAGS = ['-std=c++11']
 	if opts['profile']:
 		conf.env.DEFINES.append('DEBUG=1')
-		conf.env.CXXFLAGS.extend(['-Wno-unused-parameter', '-Wno-sign-compare', '-Wno-unused-local-typedefs', '-Wall', '-Wextra','-g', '-pg'])
+		conf.env.CXXFLAGS.extend(['-Wall', '-Wextra','-g', '-pg'])
 		conf.env.LINKFLAGS = ['-pg']
 	elif opts['debug']:
 		conf.env.DEFINES.append('DEBUG=1')
-		conf.env.CXXFLAGS.extend(['-Wno-unused-parameter', '-Wno-sign-compare', '-Wno-unused-local-typedefs', '-Wall', '-Wextra','-g'])
+		conf.env.CXXFLAGS.extend(['-Wall', '-Wextra','-g'])
 	else:
 		conf.env.DEFINES.append('NDEBUG=1')
-		conf.env.CXXFLAGS.extend(['-O3', '-Wno-unused-local-typedefs'])
+		conf.env.CXXFLAGS.extend(['-O3', 'Wall'])
 	
 	conf.check(header_name='stdio.h', features='cxx cxxprogram', mandatory=True)
 	conf.check_cfg(package='zlib', mandatory=True)

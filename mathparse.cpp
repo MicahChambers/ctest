@@ -4,18 +4,16 @@
 #include <sstream>
 #include <functional>
 #include <list>
+#include <cassert>
+#include <ctime>
+#include <random>
 
 #include "mathparse.h"
 
-//using std::list;
 using std::string;
 using std::cout;
 using std::endl;
 using std::cerr;
-//using std::vector;
-//using std::function;
-//using std::shared_ptr;
-//using std::setw;
 
 struct OperandT
 {
@@ -26,7 +24,7 @@ struct OperandT
 	char op;
 };
 
-bool isnumeric(char c)
+bool isdecimal(char c)
 {
 	return isdigit(c) || c == '.';
 }
@@ -35,7 +33,7 @@ bool isnumeric(char c)
  * @brief Reads from input string and returns a whole token 
  * 			(operator/literal/variable). We give [] special
  * 			privilege and allow for string names 
- * 			unlike normal tokenizers
+ * 			unlike normal tokenizers. (Assumes no whitespace)
  *
  * @param pos	input/output start searching at this point in the string, 
  * 				gets changed to the start of the next search
@@ -43,86 +41,74 @@ bool isnumeric(char c)
  *
  * @return 		token
  */
-OperandT gettoke(int& pos, string str)
+OperandT gettoke(int& pos, string str, bool prevop)
 {
 	OperandT fail = {"", 0};
 
-	if(pos >= str.size())
+	if(pos >= (int)str.size())
 		return fail;
 
 	int beg;
 	string str2;
-	//skip starting white space
-	for(; pos < str.size() && isspace(str[pos]) ; pos++) continue;
 
 	//check if its an operator
-	if(MATHOPS.find(str[pos]) != string::npos) {
+	if(MATHOPS.find(str[pos]) != string::npos && 
+			!(prevop && (str[pos] == '+' || str[pos] == '-'))) {
 		pos++;
 		OperandT tmp = {"", str[pos-1]};
 		return tmp;
 	}
-	
+
 	/* 
 	 * Check for non-operator string
 	 */
 
 	if(isalpha(str[pos])) {
 		//if it is a varname, get the whole name
-		for(beg = pos; pos < str.size() && isalpha(str[pos]); pos++) continue;
+		for(beg = pos; pos < (int)str.size() && isalpha(str[pos]); pos++) continue;
 
 		if(pos > beg)
 			str2 = str.substr(beg, pos-beg);
+		
+		// check for bracketed expression after literal string
+		if(str[pos] == '[') {
+			beg = pos++;
+
+			//only allow commas if there is numeric input
+			if(str[pos] == '-' || str[pos] == '+' || isdecimal(str[pos])) {
+
+				//allow for preceeding +/-
+				if(str[pos] == '-' || str[pos] == '+')
+					pos++;
+
+				for(; pos < (int)str.size() && (str[pos] == ',' || isdecimal(str[pos]));  pos++) 
+						continue;
+			} else if(isalpha(str[pos])) {
+			//if there is a variable in the [] then only allow one
+				for(; pos < (int)str.size() && isalpha(str[pos]);  pos++)
+					continue;
+			}
+
+			if(pos == (int)str.size() || str[pos] != ']') {
+				cerr << "Error Parsing input, it looks like you are missing a closing"
+					"bracket, or have not provided a legal index " 
+					<< endl << str << endl << std::setw(beg+1) << '^' << endl;
+				return fail;
+			}
+			str2 += str.substr(beg, ++pos-beg);
+		}
 
 	} else {
-		//if it is a number, get the whole number
-		for(beg = pos; pos < str.size() && isnumeric(str[pos]);  pos++) 
+		//if it is a number, get the whole number, including prefix +/-
+		beg = pos;
+		if(str[pos] == '-' || str[pos] == '+')
+			pos++;
+
+		for(; pos < (int)str.size() && isdecimal(str[pos]);  pos++) 
 			continue;
+
 		if(pos > beg)
 			str2 = str.substr(beg, pos-beg);
-	}
-
-	/* 
-	 * check for bracketed expression after literal string
-	 */
-
-	//eat white space
-	for(; pos < str.size() && isspace(str[pos]) ; pos++) continue;
-	
-	if(str[pos] == '[') {
-		pos++;
-		str2 += '[';
-		
-		//eat white space
-		for(; pos < str.size() && isspace(str[pos]) ; pos++) continue;
-
-		//check for variables (string/number) again
-		if(isalpha(str[pos])) {
-			//if it is a varname, get the whole name
-			for(beg = pos; pos < str.size() && isalpha(str[pos]); pos++) continue;
-
-			if(pos > beg)
-				str2 = str2+str.substr(beg, pos-beg);
-
-		} else {
-			//if it is a number, get the whole number
-			for(beg = pos; pos < str.size() && isnumeric(str[pos]);  pos++) 
-				continue;
-			if(pos > beg)
-				str2 = str2+str.substr(beg, pos-beg);
-		}
-
-		cerr << str[pos] << endl;
-		//eat white space
-		for(; pos < str.size() && isspace(str[pos]) ; pos++) continue;
-		cerr << str[pos] << endl;
-		if(str[pos] != ']') {
-			cerr << "Error Parsing input, it looks like you are missing a closing"
-				"bracket at " << endl << str << endl << std::setw(pos+1) << '^' << endl;
-			return fail;
-		}
-		cerr << str[pos] << endl;
-		str2 += ']';
-		pos++;
 	}
 
 	if(str2 != "") {
@@ -159,15 +145,30 @@ std::list<string> reorder(std::string str)
 	std::list<string> outqueue;
 	std::list<char> opstack;
 
+	int jj = 0;
+	for(int ii = 0; ii < (int)str.length(); ii++) {
+		if(!isprint(str[ii])) {
+			cerr << "Error, not sure what this character is: " << endl << str
+					<< std::setw(ii) << "^" << endl; 
+			return outqueue;
+		}
+		if(!isspace(str[ii])) 
+			str[jj++] = str[ii];
+	}
+	str.resize(jj);
+
 	/* While there are tokens to evaluate */
-	OperandT toke = gettoke(pos, str);
+	bool prevop = true;
+	OperandT toke = gettoke(pos, str, prevop);
 	while(prev < pos) {
 
 		if(toke.lit != "") {
 			// Literal, string or number
+			prevop = false;
 			outqueue.push_back(toke.lit);
 		} else if(toke.op != 0) {
 			// Operator 
+			prevop = true;
 			if(toke.op == '(') {
 				// Open Parenthetical
 				opstack.push_front(toke.op);
@@ -202,7 +203,7 @@ std::list<string> reorder(std::string str)
 			}
 		}
 		prev = pos;
-		toke = gettoke(pos, str);
+		toke = gettoke(pos, str, prevop);
 	}
 
 	// Copy last operators to output queue
@@ -215,104 +216,80 @@ std::list<string> reorder(std::string str)
 		opstack.pop_front();
 	}
 
-	return outqueue;
-	
-}
-		
-double getV(std::list<double>& args)
-{
-	double A = args.front();
-	args.pop_front();
-	return A;
-}
-
-double procV(std::list<double>& args, 
-		std::function<double(std::list<double>&)> bef1, 
-		std::function<double(std::list<double>&)> bef2,
-		std::function<double(double,double)> fc)
-{
-	cerr << "Array: ";
-	for(auto it = args.begin(); it != args.end(); it++)
-		cerr << *it << ",";
-	cerr << endl;
-	cerr << &bef1 << endl;
-	cerr << &bef2 << endl;
-
-	double A = bef1(args);
-	double B = bef2(args);
-
-	cerr << "Evaluating: ";
-	cerr << &fc << " with " << A << ", " << B << endl;
-	cerr << endl;
-	return fc(A, B);
-}
-
-string traverse_help(std::list<string>::iterator it, std::list<string>& rpn, 
-		std::list<string>& args)
-{
-	string orig = *it;
-	cerr << "enter: " << orig << "It: " << *it << endl;
-	cerr << "enter: " << orig << "RPN: ";
-	for(auto tit = rpn.begin(); tit != rpn.end(); tit++) {
-		cerr<< *tit << " ";
-	}
-	cerr << endl;
-	cerr << "Args: ";
-	for(auto tit = args.begin(); tit != args.end(); tit++) {
-		cerr<< *tit << " ";
-	}
-	cerr << endl;
-
-	if(MATHOPS.find(*it) != string::npos) {
-		//operator
-		--it;
-		string s1 = traverse_help(it, rpn, args);
-		--it;
-		string s2 = traverse_help(it, rpn, args);
-		args.push_back(s2);
-		args.push_back(s1);
-		return "!";
-	} else {
-		string tmp = *it;
-		it = rpn.erase(it);
-		return tmp;
-	}
-}
-
-void traverse(std::list<string> rpn, std::list<string>& args)
-{
-	auto it = rpn.end();
-	--it;
-	traverse_help(it, rpn, args);
-}
-
-std::function<double(const std::vector<double>&)>
-makeChain(std::list<string> rpn, std::list<string> args)
-{
-	using namespace std::placeholders;
-	
-
-	for(int ii = 0 ; ii < 5; ii++) {
-		cerr << MATHOPS[ii] << ":" << &MATHFUNC[ii] << endl;
+	size_t varcount = 0;
+	size_t opcount = 0; 
+	for(auto it = outqueue.begin(); it != outqueue.end(); it++) {
+		if(it->length() > 1 || MATHOPS.find(*it) == string::npos) 
+			varcount++;
+		else
+			opcount++;
 	}
 
-	std::vector<string> arglist;
 	std::ostringstream ostr("");
-	for(auto it = rpn.begin(); it != rpn.end(); it++) {
+	for(auto it = outqueue.begin(); it != outqueue.end(); it++) {
 		ostr << *it << " ";
 	}
 	cout << "RPN: " << ostr.str() << endl;
 
-	std::vector<std::function<double(std::list<double>&)>> funcs;
+	if(opcount+1 > varcount) {
+		cerr << "Error, too many operators, not enough arguments" << endl;
+		return std::list<string>();
+	}
+	if(opcount+1 < varcount) {
+		cerr << "Error, too many arguments, not enough operators" << endl;
+		return std::list<string>();
+	}
+
+	return outqueue;
+	
+}
+		
+double getV(const std::vector<double>& args, size_t& ii)
+{
+	return args[ii++];
+}
+
+double procV(const std::vector<double>& args, size_t& ii,
+		std::function<double(const std::vector<double>&, size_t&)> bef1, 
+		std::function<double(const std::vector<double>&, size_t&)> bef2,
+		std::function<double(double,double)> fc)
+{
+	double A = bef1(args, ii);
+	double B = bef2(args, ii);
+
+	return fc(A, B);
+}
+
+double recurseWrap(const std::vector<double>& args, const size_t sz,
+			std::function<double(const std::vector<double>&, size_t&)> f)
+{
+	size_t ii = 0;
+	if(args.size() != sz) {
+#ifndef NDEBUG
+		cerr << "Error Incorrect Number of Arguments for the given equation" << endl;
+#endif //NDEBUG
+		return NAN;
+	}
+	return f(args, ii);	
+}
+
+std::function<double(const std::vector<double>&)>
+makeRecMath(std::list<string> rpn, std::vector<string>& args)
+{
+	using namespace std::placeholders;
+	
+	std::vector<string> arglist;
+
+	std::vector<std::function<double(const std::vector<double>&, size_t&)>> funcs;
 
 	for(auto it = rpn.begin(); it != rpn.end(); it++) {
 
-		size_t opi = MATHOPS.find((*it)[0]);
-		cerr << "Op: ";
-		cerr << "Arglist: ";
-		for(auto it = arglist.begin(); it != arglist.end(); it++) 
-			cerr << *it << ",";
-		cerr << endl;
+		// operations should have length 1, literals can sometimes have -+ at 
+		// front
+		size_t opi = string::npos;
+		if(it->length() == 1)
+			opi = MATHOPS.find((*it)[0]);
+
 		if(opi != string::npos) {
 
 			if(arglist.size() < 2) {
@@ -329,7 +306,7 @@ makeChain(std::list<string> rpn, std::list<string> args)
 				auto f2 = funcs.back();
 				funcs.pop_back();
 
-				auto newfunc = bind(procV, _1, f2, f1, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, _2, f2, f1, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				
 				//take the used arguments off the arglist
@@ -339,33 +316,29 @@ makeChain(std::list<string> rpn, std::list<string> args)
 				auto f1 = funcs.back();
 				funcs.pop_back();
 				
-				auto newfunc = bind(procV, _1, getV, f1, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, _2, getV, f1, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				
 				//take the used arguments off the arglist
 				arglist.pop_back();
-				args.push_back(arglist.back());
 				arglist.pop_back();
 			} else if(arglist[arglist.size()-2] == "!") {
 				auto f2 = funcs.back();
 				funcs.pop_back();
 				
-				auto newfunc = bind(procV, _1, f2, getV, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, _2, f2, getV, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				//take the used arguments off the arglist
-				args.push_back(arglist.back());
 				arglist.pop_back();
 				arglist.pop_back();
 			} else {
-				auto newfunc = bind(procV, _1, getV, getV, MATHFUNC[opi]);
+				auto newfunc = bind(procV, _1, _2, getV, getV, MATHFUNC[opi]);
 				funcs.push_back(newfunc);
 				
 				std::string a = arglist.back();
 				arglist.pop_back();
 				std::string b = arglist.back();
 				arglist.pop_back();
-				args.push_back(b);
-				args.push_back(a);
 			} 
 
 			arglist.push_back("!");
@@ -375,35 +348,19 @@ makeChain(std::list<string> rpn, std::list<string> args)
 		}
 	}
 	
-//	traverse(rpn, args);
-
 	if(arglist.size() != 1) {
 		cerr << "Error Too Many Terms!" << endl;
 		return NULL;
 	}
 
-
-
-	std::list<double> fargs;
-//	cerr << "Args: ";
-//	for(auto it = args.begin() ; it != args.end(); it++) {
-//		fargs.push_back(atof(it->c_str()));
-//		cerr << fargs.back() << ", " ;
-//	}
-//	cerr << endl;
-	cerr << "Args: ";
+	args.clear();
 	for(auto it = rpn.begin() ; it != rpn.end(); it++) {
-		if(MATHOPS.find((*it)[0]) == string::npos) {
-			fargs.push_back(atof(it->c_str()));
-			cerr << fargs.back() << ", " ;
+		if(it->length() > 1 || MATHOPS.find((*it)[0]) == string::npos) {
+			args.push_back(*it);
 		}
 	}
-	cerr << endl;
 
-
-	funcs.back()(fargs);
-
-	return 0;
+	return bind(recurseWrap, _1, args.size(), funcs.back());
 }
 ///**
 // * @brief Example Evaluation function
@@ -453,4 +410,222 @@ makeChain(std::list<string> rpn, std::list<string> args)
 //	return 0;
 //}
 
+/**
+ * @brief Example Evaluation function
+ *
+ * @param rpn
+ *
+ * @return 
+ */
+double loopMathWrap(const std::vector<double>& args, string ops, size_t sz)
+{
+	if(args.size() != sz) {
+#ifndef NDEBUG
+		cerr << "Error Incorrect Number of Arguments for the given equation" << endl;
+#endif //NDEBUG
+		return NAN;
+	}
+	std::list<double> stack;
+	double lhs, rhs;
+	
+	auto it = args.begin();
+	for(size_t ii = 0 ; ii < ops.length(); ii++) {
+		switch (ops[ii]) {
+			case '+':
+				rhs = stack.back(); 
+				stack.pop_back();
+				lhs = stack.back(); 
+				stack.back() = lhs+rhs;
+				break;
+			case '-':
+				rhs = stack.back(); 
+				stack.pop_back();
+				lhs = stack.back(); 
+				stack.back() = lhs-rhs;
+				break;
+			case '*':
+				rhs = stack.back(); 
+				stack.pop_back();
+				lhs = stack.back(); 
+				stack.back() = lhs*rhs;
+				break;
+			case '/':
+				rhs = stack.back(); 
+				stack.pop_back();
+				lhs = stack.back(); 
+				stack.back() = lhs/rhs;
+				break;
+			case '^':
+				rhs = stack.back(); 
+				stack.pop_back();
+				lhs = stack.back(); 
+				stack.back() = pow(lhs,rhs);
+				break;
+			case '!': //load
+				stack.push_back(*it);
+				it++;
+				break;
+		}
+	}
+	assert(stack.size() == 1);
+	return stack.back();
+}
+
+std::function<double(const std::vector<double>&)>
+makeLoopMath(std::list<string> rpn, std::vector<string>& args)
+{
+	using namespace std::placeholders;
+	
+	std::ostringstream oss;
+	args.clear();
+	for(auto it = rpn.begin(); it != rpn.end(); it++) {
+		if(it->length() > 1 || MATHOPS.find((*it)[0]) == string::npos) {
+			oss << '!';
+			args.push_back(*it);
+		} else {
+			oss << (*it)[0];
+		}
+	}
+
+	return bind(loopMathWrap, _1, oss.str(), args.size());
+}
+
+double testmath(double a, double b, double c, double d, double e, double f, double g, double h)
+{
+	return pow(a*b-pow(c,pow(d,e)) + f*g,h);
+}
+
+bool test()
+{
+	string str = "(3*1-4^1.1^.5 + 3*3)^3.3";
+
+	std::list<string> rpn = reorder(str);
+	if(rpn.empty()) {
+		return -1;
+	}
+
+	std::vector<string> args;
+	auto recursiveChain = makeRecMath(rpn, args);
+	auto forChain = makeLoopMath(rpn, args);
+
+	std::vector<double> fargs;
+	for(auto it = args.begin() ; it != args.end(); it++) {
+		fargs.push_back(atof(it->c_str()));
+	}
+
+	double a = testmath(3,1,4,1.1,.5,3,3,3.3);
+	double b = recursiveChain(fargs);
+	double c = forChain(fargs);
+	
+	bool success = true;
+	cerr << "Recursive" << endl;
+	cerr << a << " == " << b;
+	if(fabs(a-b) < 0.0000000001) {
+		cerr << ", True" << endl;
+	} else {
+		cerr << ", False" << endl;
+		success = false;
+	}
+
+	cerr << "Iterative" << endl;
+	cerr << a << " == " << c;
+	if(fabs(a-c) < 0.0000000001) {
+		cerr << ", True" << endl;
+	} else {
+		cerr << ", False" << endl;
+		success = false;
+	}
+
+	return success;
+}
+
+void speedtest(int iters)
+{
+	string str = "(3*1-4^1.1^.5 + 3*3)^3.3";
+
+	std::list<string> rpn = reorder(str);
+	if(rpn.empty()) {
+		return ;
+	}
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0, 10);
+
+	std::vector<string> args;
+	auto recursiveChain = makeRecMath(rpn, args);
+	auto forChain = makeLoopMath(rpn, args);
+
+	std::vector<double> fargs(args.size());
+
+	// store the results, so that compiled math doesn't get over optimized
+	std::list<double> results;
+
+	/* 
+	 * Compiled Math
+	 */
+	auto c1 = clock();
+	for(int ii = 0 ; ii < iters ; ii++) {
+		results.push_back(testmath(dis(gen),dis(gen),dis(gen),dis(gen),dis(gen),
+					dis(gen),dis(gen),dis(gen)));
+	}
+	auto c2 = clock();
+	double base = ((double)(c2-c1))/CLOCKS_PER_SEC;
+	fprintf(stderr, "base %li ticks (%f sec) (%fx)\n", c2-c1, base, base/base);
+	results.clear();
+
+	/* 
+	 * Test of Recursive 'elegent-but-slow' based math 
+	 */
+	c1 = clock();
+	for(int ii = 0 ; ii < iters ; ii++) {
+		for(int jj = 0 ; jj < (int)fargs.size(); jj++)
+			fargs[jj] = dis(gen);
+		results.push_back(recursiveChain(fargs));
+	}
+	c2 = clock();
+	double recu = ((double)(c2-c1))/CLOCKS_PER_SEC;
+	fprintf(stderr, "recursive %li ticks (%f sec) (%fx)\n", c2-c1, recu, recu/base);
+	results.clear();
+
+	/* 
+	 * Test of For-Loop/Case based math 
+	 */
+	c1 = clock();
+	for(int ii = 0 ; ii < iters ; ii++) {
+		for(int jj = 0 ; jj < (int)fargs.size(); jj++) {
+			fargs[jj] = dis(gen);
+		}
+		results.push_back(forChain(fargs));
+	}
+	c2 = clock();
+	double forl = ((double)(c2-c1))/CLOCKS_PER_SEC;
+	fprintf(stderr, "for loop %li ticks (%f sec) (%fx)\n", c2-c1, forl, forl/base);
+	results.clear();
+	
+	/* 
+	 * Test of non-wrapped math expresssion
+	 */
+	std::ostringstream oss;
+	for(auto it = rpn.begin(); it != rpn.end(); it++) {
+		if(MATHOPS.find((*it)[0]) == string::npos) {
+			oss << '!';
+		} else {
+			oss << (*it)[0];
+		}
+	}
+	c1 = clock();
+	for(int ii = 0 ; ii < iters ; ii++) {
+		for(int jj = 0 ; jj < (int)fargs.size(); jj++)
+			fargs[jj] = dis(gen);
+		results.push_back(loopMathWrap(fargs, oss.str(), fargs.size()));
+	}
+	c2 = clock();
+	results.clear();
+	
+	double forlNoWrap = ((double)(c2-c1))/CLOCKS_PER_SEC;
+	fprintf(stderr, "for loop (no wrapper) %li ticks (%f sec) (%fx)\n", 
+			c2-c1, forlNoWrap, forlNoWrap/base);
+
+}
 

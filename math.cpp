@@ -33,7 +33,7 @@ int eval(const list<string>& rpn)
 	for(auto it = rpn.begin(); it != rpn.end(); it++) {
 		pos += it->length() + 1;
 
-		if(MATHOPS.find((*it)[0]) != string::npos) {
+		if(it->length() == 1 && MATHOPS.find((*it)[0]) != string::npos) {
 			//simulate performing the operation
 			if(arglist.size() < 2) {
 				cerr << "Error, invalid expression!" << endl;
@@ -42,7 +42,7 @@ int eval(const list<string>& rpn)
 
 			string tmp = arglist.front();
 			arglist.pop_front();
-			tmp = "(" + tmp + *it + arglist.front() + ")";
+			tmp = "(" + arglist.front() + *it + tmp + ")";
 			arglist.pop_front();
 			arglist.push_front(tmp);
 		} else {
@@ -59,11 +59,31 @@ int eval(const list<string>& rpn)
 	return 0;
 }
 
+double bigmath(double a, double b, double c, double d, double e, double f, double g, double h)
+{
+	return pow(a*b-pow(c,pow(d,e)) + f*g,h);
+}
+
+double bigmath(const std::vector<double>& in)
+{
+	const double& a = in[0];
+	const double& b = in[1];
+	const double& c = in[2];
+	const double& d = in[3];
+	const double& e = in[4];
+	const double& f = in[5];
+	const double& g = in[6];
+	const double& h = in[7];
+	return bigmath(a,b,c,d,e,f,g,h);
+}
+
+
 int main(int argc, char** argv)
 {
-
 	if(argc != 2) {
-		std::cerr << "Needs 1 argument" << std::endl;
+		bool result = test();
+		speedtest();
+		return result != true;
 	}
 	
 	list<string> rpn = reorder(argv[1]);
@@ -71,9 +91,17 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	std::list<string> args;
-	auto foo = makeChain(rpn, args);
-//	if(eval(rpn) < 0) {
-//		return -1;
-//	}
+	std::vector<string> args;
+	std::vector<double> fargs;
+	
+	auto loop = makeRecMath(rpn, args);
+	if(!loop) 
+		return -1;
+
+	for(auto it = args.begin() ; it != args.end(); it++) {
+		fargs.push_back(atof(it->c_str()));
+	}
+
+	cerr << loop(fargs) << endl;
+
 }
