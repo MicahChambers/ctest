@@ -34,6 +34,9 @@ sort: sort.cpp
 extern: extern_1.cpp extern_1.h extern_2.cpp
 	g++ extern_1.cpp extern_2.cpp -o extern
 
+gzip: gzip.cpp 
+	g++ gzip.cpp -o gzip -std=c++11 -lz
+
 #libtemplate.so: template_shared_object.cpp 
 #	g++ $< -shared -o $@ -Wl,-soname,libtemplate.so -fPIC -std=c++11 ${CFLAGS} 
 #

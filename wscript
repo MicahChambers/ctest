@@ -29,6 +29,7 @@ def build(bld):
 #	bld.program(target='template_user', source=' template_user.cpp', use='template')
 	bld.program(target='iter', source='iter.cpp')
 	bld.program(target='vector_expand', source='vector_expand.cpp')
+	bld.program(target='gzip', source='gzip.cpp', use='ZLIB')
 
 def configure(conf):
 	join = os.path.join
@@ -57,10 +58,10 @@ def configure(conf):
 		conf.env.CXXFLAGS.extend(['-Wall', '-Wextra','-g'])
 	else:
 		conf.env.DEFINES.append('NDEBUG=1')
-		conf.env.CXXFLAGS.extend(['-O3', 'Wall'])
+		conf.env.CXXFLAGS.extend(['-O3', '-Wall'])
 	
 	conf.check(header_name='stdio.h', features='cxx cxxprogram', mandatory=True)
-	conf.check_cfg(package='zlib', mandatory=True)
+	conf.check_cfg(package='zlib', userlib_store='ZLIB', mandatory=True, args=['--cflags', '--libs'])
 
 def options(ctx):
 	ctx.load('compiler_c compiler_cxx')
