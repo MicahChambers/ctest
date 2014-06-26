@@ -21,14 +21,16 @@ def build(bld):
 	bld.program(target='round_factor', source='round_factor.cpp')
 	bld.program(target='math', source='math.cpp mathparse.cpp')
 	bld.program(target='bind', source='bind.cpp')
-	bld.program(target='case2', source='case2.cpp')
+	#bld.program(target='case2', source='case2.cpp')
 	bld.program(target='rotate', source='rotate.cpp')
-	bld.program(target='shears', source='shears.cpp')
+	#bld.program(target='shears', source='shears.cpp')
 	bld.program(target='fmod', source='fmod.cpp')
+	bld.program(target='lambda', source='lambda.cpp')
 #	bld.shlib(target='template', source='template_shared_object.cpp')
 #	bld.program(target='template_user', source=' template_user.cpp', use='template')
 	bld.program(target='iter', source='iter.cpp')
 	bld.program(target='vector_expand', source='vector_expand.cpp')
+	bld.program(target='slicer', source='slicer.cpp')
 
 def configure(conf):
 	join = os.path.join
@@ -57,7 +59,7 @@ def configure(conf):
 		conf.env.CXXFLAGS.extend(['-Wall', '-Wextra','-g'])
 	else:
 		conf.env.DEFINES.append('NDEBUG=1')
-		conf.env.CXXFLAGS.extend(['-O3', 'Wall'])
+		conf.env.CXXFLAGS.extend(['-O3', '-Wall'])
 	
 	conf.check(header_name='stdio.h', features='cxx cxxprogram', mandatory=True)
 	conf.check_cfg(package='zlib', mandatory=True)
