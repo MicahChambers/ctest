@@ -15,6 +15,7 @@ def build(bld):
 	bld.program(target='plottest', source='plottest.cpp', use='plot')
 	bld.program(target='gradtest', source='gradtest.cpp', use='plot')
 	bld.program(target='kerntest', source='kerntest.cpp', use='plot')
+	bld.program(target='matrix', source='matrix.cpp')
 	bld.program(target='lanczos', source='lanczos.cpp')
 	bld.program(target='hash', source='hash.cpp')
 	bld.program(target='sort', source='sort.cpp')
