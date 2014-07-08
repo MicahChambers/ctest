@@ -15,6 +15,7 @@ def build(bld):
 	bld.program(target='plottest', source='plottest.cpp', use='plot')
 	bld.program(target='gradtest', source='gradtest.cpp', use='plot')
 	bld.program(target='kerntest', source='kerntest.cpp', use='plot')
+	bld.program(target='matrix', source='matrix.cpp')
 	bld.program(target='lanczos', source='lanczos.cpp')
 	bld.program(target='hash', source='hash.cpp')
 	bld.program(target='sort', source='sort.cpp')
@@ -32,6 +33,8 @@ def build(bld):
 	bld.program(target='iter', source='iter.cpp')
 	bld.program(target='vector_expand', source='vector_expand.cpp')
 	bld.program(target='slicer', source='slicer.cpp')
+	bld.program(target='gzip', source='gzip.cpp', use='ZLIB')
+	bld.program(target='typetest', source='typetest.cpp')
 
 def configure(conf):
 	join = os.path.join
@@ -63,7 +66,7 @@ def configure(conf):
 		conf.env.CXXFLAGS.extend(['-O3', '-Wall'])
 	
 	conf.check(header_name='stdio.h', features='cxx cxxprogram', mandatory=True)
-	conf.check_cfg(package='zlib', mandatory=True)
+	conf.check_cfg(package='zlib', userlib_store='ZLIB', mandatory=True, args=['--cflags', '--libs'])
 
 def options(ctx):
 	ctx.load('compiler_c compiler_cxx')
