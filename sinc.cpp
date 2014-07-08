@@ -16,13 +16,14 @@ double lanczosKern(double x, double a)
 
 double dlanczosKern(double x, double a)
 {
-	const double PI = acos(-1);
-	if(x == 0)
-		return 0;
-	if(fabs(x) > a)
-		return 0;
-	PI*cos(PI*x/a)*sin(PI*x)/(PI*PI*x*x) + 
-	PI*a*sin(PI*x/a)*cos(PI*x)/(PI*PI*x*x);
+//	const double PI = acos(-1);
+//	if(x == 0)
+//		return 0;
+//	if(fabs(x) > a)
+//		return 0;
+//	PI*cos(PI*x/a)*sin(PI*x)/(PI*PI*x*x) + 
+//	PI*a*sin(PI*x/a)*cos(PI*x)/(PI*PI*x*x);
+	return 0;
 }
 
 int main(int argc, char* argv[])

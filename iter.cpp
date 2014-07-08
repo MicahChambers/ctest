@@ -5,14 +5,14 @@ using namespace std;
 int main()
 {
 	int ii = 100;
-	cerr << "ii-- < ii ? " << (ii-- < ii) << endl;
-	cerr << "--ii < ii ? " << (--ii < ii) << endl;
-	cerr << "ii++ < ii ? " << (ii++ < ii) << endl;
-	cerr << "++ii < ii ? " << (++ii < ii) << endl;
-	cerr << "ii-- > ii ? " << (ii-- < ii) << endl;
-	cerr << "--ii > ii ? " << (--ii < ii) << endl;
-	cerr << "ii++ > ii ? " << (ii++ < ii) << endl;
-	cerr << "++ii > ii ? " << (++ii < ii) << endl;
+	cerr << "ii-- < ii ? " << ((ii--) < ii) << endl;
+	cerr << "--ii < ii ? " << ((--ii) < ii) << endl;
+	cerr << "ii++ < ii ? " << ((ii++) < ii) << endl;
+	cerr << "++ii < ii ? " << ((++ii) < ii) << endl;
+	cerr << "ii-- > ii ? " << ((ii--) < ii) << endl;
+	cerr << "--ii > ii ? " << ((--ii) < ii) << endl;
+	cerr << "ii++ > ii ? " << ((ii++) < ii) << endl;
+	cerr << "++ii > ii ? " << ((++ii) < ii) << endl;
 
 	size_t jj;
 

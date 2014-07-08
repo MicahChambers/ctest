@@ -31,7 +31,7 @@ vector<double> buildCache(double density)
 {
 	vector<double> ret(4./density, 0);
 	cerr << "Building cahe of length " << ret.size() << endl;
-	for(int ii = 0 ; ii < ret.size(); ii++){
+	for(size_t ii = 0 ; ii < ret.size(); ii++){
 		ret[ii] = B3kern(-2 + ii*density);
 	}
 	return ret;
