@@ -26,6 +26,7 @@ def build(bld):
 	#bld.program(target='shears', source='shears.cpp')
 	bld.program(target='fmod', source='fmod.cpp')
 	bld.program(target='lambda', source='lambda.cpp')
+	bld.shlib(target='template2', source='template2.cpp')
 #	bld.shlib(target='template', source='template_shared_object.cpp')
 #	bld.program(target='template_user', source=' template_user.cpp', use='template')
 	bld.program(target='iter', source='iter.cpp')
