@@ -32,6 +32,8 @@ def build(bld):
 	bld.program(target='vector_expand', source='vector_expand.cpp')
 	bld.program(target='gzip', source='gzip.cpp', use='ZLIB')
 
+	bld.program(target='typetest', source='typetest.cpp')
+
 def configure(conf):
 	join = os.path.join
 	isabs = os.path.isabs
