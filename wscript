@@ -16,7 +16,9 @@ def build(bld):
 	bld.program(target='gradtest', source='gradtest.cpp', use='plot')
 	bld.program(target='kerntest', source='kerntest.cpp', use='plot')
 	bld.program(target='stack_pass', source='stack_pass.cpp')
+	bld.program(target='ostream', source='ostream.cpp')
 	bld.program(target='matrix', source='matrix.cpp')
+	bld.program(target='function_pointer', source='function_pointer.cpp')
 	bld.program(target='lanczos', source='lanczos.cpp')
 	bld.program(target='hash', source='hash.cpp')
 	bld.program(target='sort', source='sort.cpp')
@@ -34,6 +36,7 @@ def build(bld):
 	bld.program(target='iter', source='iter.cpp')
 	bld.program(target='vector_expand', source='vector_expand.cpp')
 	bld.program(target='slicer', source='slicer.cpp')
+	bld.program(target='slicer_template', source='slicer_template.cpp')
 	bld.program(target='gzip', source='gzip.cpp', use='ZLIB')
 	bld.program(target='typetest', source='typetest.cpp')
 

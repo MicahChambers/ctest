@@ -40,14 +40,14 @@ struct NodeT
 void makeGraphT(const MATRIX* in, vector<NodeT>& out)
 {
 	assert(in->size1 == in->size2);
-	size_t n = in->size1;
+	int n = in->size1;
 
 	// allocate nodes
 	out.clear();
 	out.resize(n);
 
-	for(size_t rr = 0 ; rr < n ; rr++) {
-		for(size_t cc = 0 ; cc < n ; cc++) {
+	for(int rr = 0 ; rr < n ; rr++) {
+		for(int cc = 0 ; cc < n ; cc++) {
 
 			//parent -> child
 			//rr     -> cc
