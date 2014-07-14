@@ -35,6 +35,7 @@ def build(bld):
 #	bld.program(target='template_user', source=' template_user.cpp', use='template')
 	bld.program(target='iter', source='iter.cpp')
 	bld.program(target='vector_expand', source='vector_expand.cpp')
+	bld.program(target='kernel_iterator', source='kernel_iterator.cpp kernel_iterator_test.cpp')
 	bld.program(target='slicer', source='slicer.cpp')
 	bld.program(target='slicer_template', source='slicer_template.cpp')
 	bld.program(target='gzip', source='gzip.cpp', use='ZLIB')
