@@ -20,7 +20,6 @@ def build(bld):
 	bld.program(target='ostream', source='ostream.cpp')
 	bld.program(target='matrix', source='matrix.cpp')
 	bld.program(target='combinations', source='combinations.cpp')
-	bld.program(target='iterator', source='iterator.cpp')
 	bld.program(target='function_pointer', source='function_pointer.cpp')
 	bld.program(target='lanczos', source='lanczos.cpp')
 	bld.program(target='hash', source='hash.cpp')

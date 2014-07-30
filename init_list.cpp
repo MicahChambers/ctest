@@ -26,5 +26,5 @@ int main()
 	bar({1.1,2,3});
 	
 	std::vector<double> v({1.1,2,2});
-	gar(v);
+//	gar(v);
 }
