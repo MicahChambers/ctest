@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <stdexcept>
 
 using namespace std;
 
@@ -70,6 +71,19 @@ public:
 	 */
 	size_t step(size_t dim, int64_t dist = 1);
 
+	/**
+	 * @brief 			Get linear index of a coordinate offset from the current
+	 * 					position. 
+	 *
+	 * @param len		length of offset array, must match D
+	 * @param dist		array of coordinates to offset by
+	 * @param outside	if not null, then this will be set to to true if the 
+	 * 					step would have taken use outside (and therefore wasn't
+	 * 					performed).
+	 *
+	 * @return linear index
+	 */
+	size_t offset(size_t len, int64_t * off, bool* outside = NULL);
 
 	/**
 	 * @brief Are we at the end in a particular dimension
@@ -326,6 +340,42 @@ size_t Slicer::step(size_t dim, int64_t dist)
 }
 
 /**
+ * @brief Directional step, this will not step outside the region of 
+ * interest. Useful for kernels (maybe)
+ *
+ * @param len		length of offset array, must match D
+ * @param dist		array of coordinates to offset by
+ * @param outside	if not null, then this will be set to to true if the 
+ * 					step would have taken use outside (and therefore wasn't
+ * 					performed).
+ *
+ * @return linear index
+ */
+size_t Slicer::offset(size_t len, int64_t* off, bool* outside)
+{
+	size_t D = m_order.size();
+	if(len > D) 
+		throw std::out_of_range("Invalid dimension passed to Slicer::Step");
+		
+	if(outside) {
+		*outside = false;
+	}
+
+	int64_t clamped;
+	size_t linpos = m_linpos;
+	for(size_t ii=0; ii<D; ii++) {
+		clamped = std::max<int64_t>(m_roi[ii].first, 
+				std::min<int64_t>(m_roi[ii].second, m_pos[ii]+off[ii]));
+		linpos += (clamped-m_pos[ii])*m_strides[ii];
+		
+		if(outside && ((int64_t)m_pos[ii])+off[ii] == clamped)
+			*outside = true;
+	}
+
+	return m_linpos;
+}
+
+/**
  * @brief Are we at the end in a particular dimension
  *
  * @param dim	dimension to check
@@ -523,7 +573,7 @@ void Slicer::updateDim(std::vector<size_t>& dim)
 
 	// reset default order
 	for(size_t ii=0 ; ii<ndim ; ii++)
-		m_order[ii] = m_order[ndim-1-ii];
+		m_order[ii] = ndim-1-ii;
 
 
 	// set up strides
@@ -532,6 +582,7 @@ void Slicer::updateDim(std::vector<size_t>& dim)
 		m_strides[ii] = m_strides[ii+1]*dim[ii+1];
 	}
 
+	updateLinRange();
 };
 
 /**
@@ -858,4 +909,52 @@ int main()
 		}
 	}
 	cerr << endl;
+
+	size_t ITERS = 100000;
+	size_t sum = 0;
+	cerr << "Speed Test!" << endl;
+	clock_t t = clock();
+	for(size_t ii=0 ; ii < ITERS; ii++) {
+		for(slicer.setBegin(); !slicer.isEnd(); slicer++, ii++) 
+			sum += *slicer;
+	}
+	t = clock() - t;
+	cerr << "Large restart Runtime: " << t << " ( " << t/CLOCKS_PER_SEC << " ) seconds" << endl;
+	
+
+	std::vector<size_t> newdim({50, 50, 50, 50});
+	t = clock();
+	slicer.updateDim(newdim);
+	ii = 0;
+	for(slicer.setBegin(); !slicer.isEnd(); slicer++, ii++) {
+		sum += *slicer;
+		if(ii >= 50*50*50*50) {
+			cerr << "Error should have finished!" << endl;
+			return -1;
+		}
+	}
+	t = clock() - t;
+	cerr << "Large Area Runtime: " << t << " ( " << t/CLOCKS_PER_SEC << " ) seconds" << endl;
+
+	bool outside;
+	int64_t off[4] = {0,0,0,-1};
+	size_t prev = 0;;
+	ii = 0;
+	t = clock();
+	for(slicer.setBegin(); !slicer.isEnd(); slicer++, ii++) {
+		sum += *slicer;
+		size_t oprev = slicer.offset(4, off, &outside);
+		if(!outside && oprev != prev ) {
+			cerr << "Error in offset " << endl;
+			return -1;
+		}
+		if(ii >= 50*50*50*50) {
+			cerr << "Error should have finished!" << endl;
+			return -1;
+		}
+		prev = *slicer;
+	}
+	cerr << "Offset Runtime: " << t << " ( " << t/CLOCKS_PER_SEC << " ) seconds" << endl;
+	
+
 }
