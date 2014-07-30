@@ -31,7 +31,7 @@ def build(bld):
 	bld.program(target='bind', source='bind.cpp')
 	#bld.program(target='case2', source='case2.cpp')
 	bld.program(target='rotate', source='rotate.cpp')
-	#bld.program(target='shears', source='shears.cpp')
+	bld.program(target='shears', source='shears.cpp')
 	bld.program(target='fmod', source='fmod.cpp')
 	bld.program(target='lambda', source='lambda.cpp')
 	bld.shlib(target='template2', source='template2.cpp')
