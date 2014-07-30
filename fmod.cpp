@@ -10,6 +10,22 @@ int main ()
 	printf("fmod of -18.5 / 4.2 is %f\n", fmod (-18.5,4.2) );
 	printf("fmod of -4.5 / 4.2 is %f\n", fmod (-4.5,4.2) );
 
+	for(double ii=-5; ii < 5; ii++) {
+		printf("fmod of %f / 4 is %f\n", ii, fmod (ii,4) );
+	}
+	
+	// test wrapping
+	for(int ii=-5; ii < 5; ii++) {
+		printf("mod of %i / 4 is %i\n", ii, ii%4);
+	}
+	
+	for(int ii=-5; ii < 5; ii++) {
+		if(ii < 0)
+			printf("mod of %i / 4 + 5 is %i\n", ii, ii%4 + 4);
+		else	
+			printf("mod of %i / 4 is %i\n", ii, ii%4);
+	}
+
 	double param, fractpart, intpart;
 
 	const double PI = acos(-1);
