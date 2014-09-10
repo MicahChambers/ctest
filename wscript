@@ -11,6 +11,8 @@ def build(bld):
 		bld.program(source=f+'.cpp', target=f)
 
 	bld.stlib(target='plot', source='plot.cpp tga.cpp')
+	bld.program(target='function_macro', source='function_macro.cpp')
+	bld.program(target='pi', source='pi.cpp')
 	bld.program(target='prime_factor', source='prime_factor.cpp')
 	bld.program(target='fract_order_test', source='fract_order_test.cpp')
 	bld.program(target='bspline_regularize', source='bspline_regularize.cpp plot.cpp tga.cpp')
