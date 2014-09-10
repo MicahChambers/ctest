@@ -44,6 +44,8 @@ def build(bld):
 	bld.program(target='slicer_template', source='slicer_template.cpp')
 	bld.program(target='gzip', source='gzip.cpp', use='ZLIB')
 	bld.program(target='typetest', source='typetest.cpp')
+	bld.program(target='complex_test', source='complex_test.cpp')
+	bld.program(target='nan', source='nan.cpp')
 
 def configure(conf):
 	join = os.path.join
