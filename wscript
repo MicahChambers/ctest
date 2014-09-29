@@ -12,6 +12,7 @@ def build(bld):
 
 	bld.stlib(target='plot', source='plot.cpp tga.cpp')
 	bld.program(target='function_macro', source='function_macro.cpp')
+	bld.program(target='timer', source='timer.cpp', use='PTHREAD')
 	bld.program(target='pi', source='pi.cpp')
 	bld.program(target='prime_factor', source='prime_factor.cpp')
 	bld.program(target='fract_order_test', source='fract_order_test.cpp')
@@ -51,6 +52,8 @@ def build(bld):
 	bld.program(target='typetest', source='typetest.cpp')
 	bld.program(target='complex_test', source='complex_test.cpp')
 	bld.program(target='nan', source='nan.cpp')
+	bld.program(target='istringstream', source='istringstream.cpp')
+	bld.program(target='regex_test', source='regex.cpp')
 
 def configure(conf):
 	join = os.path.join
@@ -72,16 +75,17 @@ def configure(conf):
 	conf.env.CXXFLAGS = ['-std=c++11']
 	if opts['profile']:
 		conf.env.DEFINES.append('DEBUG=1')
-		conf.env.CXXFLAGS.extend(['-Wall', '-Wextra','-g', '-pg'])
+		conf.env.CXXFLAGS.extend(['-Wall', '-Wextra', '-Wno-sign-compare', '-g', '-pg'])
 		conf.env.LINKFLAGS = ['-pg']
 	elif opts['debug']:
 		conf.env.DEFINES.append('DEBUG=1')
-		conf.env.CXXFLAGS.extend(['-Wall', '-Wextra','-g'])
+		conf.env.CXXFLAGS.extend(['-Wall', '-Wextra', '-Wno-sign-compare', '-g'])
 	else:
 		conf.env.DEFINES.append('NDEBUG=1')
-		conf.env.CXXFLAGS.extend(['-O3', '-Wall'])
+		conf.env.CXXFLAGS.extend(['-O3', '-Wall', '-Wno-sign-compare'])
 	
 	conf.check(header_name='stdio.h', features='cxx cxxprogram', mandatory=True)
+	conf.check(header_name='thread', features='cxx cxxprogram', mandatory=True, lib=['pthread'], uselib_store='PTHREAD')
 	conf.check_cfg(package='zlib', userlib_store='ZLIB', mandatory=True, args=['--cflags', '--libs'])
 
 def options(ctx):
