@@ -33,24 +33,23 @@ double B3kernPow(double x)
 	inline
 double B3kern(double x)
 {
-	switch((int)x) {
+	switch((int)floor(x)) {
 		case -2:
 			return 4./3. + 2.*x + x*x + x*x*x/6.;
-			break;
+		break;
 		case -1:
 			return 2./3. - x*x - x*x*x/2.;
-			break;
+		break;
 		case 0:
-			return 2./3. + x*x + x*x*x/2.;
-			break;
+			return 2./3. - x*x + x*x*x/2.;
+		break;
 		case 1:
 			return 4./3. - 2*x + x*x - x*x*x/6.;
-			break;
+		break;
 		default:
 			return 0;
-			break;
+		break;
 	}
-	return 0;
 }
 
 /**
