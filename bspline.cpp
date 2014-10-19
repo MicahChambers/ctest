@@ -41,7 +41,7 @@ double B3kern(double x)
 			return 2./3. - x*x - x*x*x/2.;
 			break;
 		case 0:
-			return 2./3. - x*x + x*x*x/2.;
+			return 2./3. + x*x + x*x*x/2.;
 			break;
 		case 1:
 			return 4./3. - 2*x + x*x - x*x*x/6.;
