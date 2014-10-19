@@ -12,6 +12,7 @@ def build(bld):
 
 	bld.stlib(target='plot', source='plot.cpp tga.cpp')
 	bld.program(target='function_macro', source='function_macro.cpp')
+	bld.program(target='bspline', source='bspline.cpp')
 	bld.program(target='timer', source='timer.cpp', use='PTHREAD')
 	bld.program(target='cast_pointers', source='cast_pointers.cpp')
 	bld.program(target='pi', source='pi.cpp')
