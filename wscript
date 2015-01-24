@@ -11,7 +11,12 @@ def build(bld):
 		bld.program(source=f+'.cpp', target=f)
 
 	bld.stlib(target='plot', source='plot.cpp tga.cpp')
+	bld.program(target='less', source='less.cpp')
+	bld.program(target='static_return', source='static_return.cpp')
+	bld.program(target='tuple_hash', source='tuple_hash.cpp')
+	bld.program(target='multicounter', source='multicounter.cpp')
 	bld.program(target='function_macro', source='function_macro.cpp')
+	bld.program(target='bspline', source='bspline.cpp')
 	bld.program(target='timer', source='timer.cpp', use='PTHREAD')
 	bld.program(target='gz_test', source='gz_test.cpp', use='ZLIB')
 	bld.program(target='atof_test', source='atof_test.cpp')
@@ -63,18 +68,18 @@ def configure(conf):
 	join = os.path.join
 	isabs = os.path.isabs
 	abspath = os.path.abspath
-	
+
 	opts = vars(conf.options)
 	conf.load('compiler_c compiler_cxx python')
 	env = conf.env
 
-	############################### 
+	###############################
 	# Basic Compiler Configuration
-	############################### 
+	###############################
 	conf.env.RPATH = []
 	if opts['enable_rpath'] or opts['enable_install_rpath']:
 		conf.env.RPATH.append(abspath(join(conf.env.PREFIX, 'lib')))
-	
+
 	conf.env.DEFINES = ['AE_CPU=AE_INTEL', 'VCL_CAN_STATIC_CONST_INIT_FLOAT=0', 'VCL_CAN_STATIC_CONST_INIT_INT=0']
 	conf.env.CXXFLAGS = ['-std=c++11']
 	if opts['profile']:
@@ -87,7 +92,7 @@ def configure(conf):
 	else:
 		conf.env.DEFINES.append('NDEBUG=1')
 		conf.env.CXXFLAGS.extend(['-O3', '-Wall', '-Wno-sign-compare'])
-	
+
 	conf.check(header_name='stdio.h', features='cxx cxxprogram', mandatory=True)
 	conf.check(header_name='thread', features='cxx cxxprogram', mandatory=True, lib=['pthread'], uselib_store='PTHREAD')
 	conf.check_cfg(package='zlib', userlib_store='ZLIB', mandatory=True, args=['--cflags', '--libs'])
@@ -96,14 +101,14 @@ def options(ctx):
 	ctx.load('compiler_c compiler_cxx')
 
 	gr = ctx.get_option_group('configure options')
-	
+
 	gr.add_option('--enable-rpath', action='store_true', default = False, help = 'Set RPATH to build/install dirs')
 	gr.add_option('--enable-install-rpath', action='store_true', default = False, help = 'Set RPATH to install dir only')
-	
+
 	gr.add_option('--debug', action='store_true', default = False, help = 'Build with debug flags')
 	gr.add_option('--profile', action='store_true', default = False, help = 'Build with debug and profiler flags')
 	gr.add_option('--release', action='store_true', default = False, help = 'Build with compiler optimizations')
-	
+
 def gitversion():
 	if not os.path.isdir(".git"):
 		print("This does not appear to be a Git repository.")
