@@ -1,6 +1,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <complex>
 
 using namespace std;
 
@@ -20,8 +21,8 @@ int main()
 	dtwo = -INFINITY;
 	cout << done << endl << dtwo << endl;
 
-	int a = std::numeric_limits<std::complex<double>>::infinity();
-	double b = std::numeric_limits<std::complex<double>>::infinity();
+	int a = std::numeric_limits<int>::infinity();
+	double b = std::numeric_limits<double>::infinity();
 	std::complex<double> c = std::numeric_limits<std::complex<double>>::infinity();
 
 	cerr << a << " vs " << b << " vs " << c << endl;
