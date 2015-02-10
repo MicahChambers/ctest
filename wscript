@@ -63,6 +63,7 @@ def build(bld):
 	bld.program(target='nan', source='nan.cpp')
 	bld.program(target='istringstream', source='istringstream.cpp')
 	bld.program(target='regex_test', source='regex.cpp')
+	bld.program(target='eigen_test', source='eigen_test.cpp', use = 'EIGEN')
 
 def configure(conf):
 	join = os.path.join
@@ -95,7 +96,8 @@ def configure(conf):
 
 	conf.check(header_name='stdio.h', features='cxx cxxprogram', mandatory=True)
 	conf.check(header_name='thread', features='cxx cxxprogram', mandatory=True, lib=['pthread'], uselib_store='PTHREAD')
-	conf.check_cfg(package='zlib', userlib_store='ZLIB', mandatory=True, args=['--cflags', '--libs'])
+	conf.check_cfg(package='zlib', uselib_store='ZLIB', mandatory=True, args=['--cflags', '--libs'])
+	conf.check_cfg(package='eigen3', uselib_store='EIGEN', mandatory=True, args=['--cflags'])
 
 def options(ctx):
 	ctx.load('compiler_c compiler_cxx')
