@@ -14,6 +14,28 @@ using namespace std;
  *
  * @return Inverse error value
  */
+double erfinv_approx(double z)
+{
+	double sgn = 1;
+	if(z < -1 || z > 1) return std::numeric_limits<double>::signaling_NaN();
+	if(z == -1) return -std::numeric_limits<double>::infinity();
+	if(z == 1) return std::numeric_limits<double>::infinity();
+	if(z == 0) return 0;
+
+	// erf = sign(x)*sqrt(1-exp(-2*x*x/pi))
+	// ierf = sqrt(-pi*log(1-pow(erf,2)))/2
+	if(z < 0) sgn = -1;
+	return sgn*0.5*sqrt(-M_PI*log(1-pow(z,2)));
+}
+
+/**
+ * @brief Returns the inverse of the error function, which is useful for
+ * gaussian CDF
+ *
+ * @param z Values in [-1,1], where -1 -> -inf, 1 -> inf
+ *
+ * @return Inverse error value
+ */
 double erfinv(double z)
 {
 	if(z < -1 || z > 1) return std::numeric_limits<double>::signaling_NaN();
@@ -45,7 +67,8 @@ int main()
 	for(size_t ii=0; ii<TESTS; ii++) {
 		double v = 2*(rand()/(double)RAND_MAX-0.5);
 		double iv = erfinv(v);
+		double aiv = erfinv_approx(v);
 		double fiv = erf(iv);
-		cerr<<"v: "<<v <<", iv: "<<iv<<", fiv: "<<fiv<<endl;
+		cerr<<"v: "<<v <<", iv: "<<iv<<", aiv: "<<aiv<<", fiv: "<<fiv<<endl;
 	}
 }

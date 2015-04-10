@@ -1,10 +1,10 @@
 
 #include <iostream>
-#include <Eigen/Dense>
-#include <Eigen/QR>
+//#include <Eigen/Dense>
+//#include <Eigen/QR>
 
 using namespace std;
-using namespace Eigen;
+//using namespace Eigen;
 
 int main(int argc, char** argv)
 {
@@ -16,11 +16,12 @@ int main(int argc, char** argv)
 	} else {
 		cerr << "Provide 2 arguments if you want to set rows and columns" << endl;
 	}
+	cerr<<rows<<"x"<<cols<<endl;
 
-	Eigen::MatrixXd mat(rows, cols);
-	mat.setRandom();
-
-	HouseholderQR<MatrixXd> qr(mat);
-
-	MatrixXd tmp = qr.householderQ()*MatrixXd::Identity(rows, std::min(rows, cols));
+//	Eigen::MatrixXd mat(rows, cols);
+//	mat.setRandom();
+//
+//	HouseholderQR<MatrixXd> qr(mat);
+//
+//	MatrixXd tmp = qr.householderQ()*MatrixXd::Identity(rows, std::min(rows, cols));
 }
