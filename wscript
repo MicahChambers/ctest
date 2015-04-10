@@ -12,6 +12,7 @@ def build(bld):
 
 	bld.stlib(target='plot', source='plot.cpp tga.cpp')
 	bld.program(target='template_static_array', source='template_static_array.cpp')
+	bld.program(target='inverse_error', source='inverse_error.cpp')
 	bld.program(target='inf', source='inf.cpp')
 	bld.program(target='less', source='less.cpp')
 	bld.program(target='static_return', source='static_return.cpp')
