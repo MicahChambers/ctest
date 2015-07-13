@@ -12,6 +12,7 @@ def build(bld):
 
 	bld.stlib(target='plot', source='plot.cpp tga.cpp')
 	bld.program(target='template_static_array', source='template_static_array.cpp')
+	bld.program(target='factor', source='factor.cpp')
 	bld.program(target='inverse_error', source='inverse_error.cpp')
 	bld.program(target='inf', source='inf.cpp')
 	bld.program(target='less', source='less.cpp')
@@ -19,7 +20,6 @@ def build(bld):
 	bld.program(target='tuple_hash', source='tuple_hash.cpp')
 	bld.program(target='multicounter', source='multicounter.cpp')
 	bld.program(target='function_macro', source='function_macro.cpp')
-	bld.program(target='bspline', source='bspline.cpp')
 	bld.program(target='timer', source='timer.cpp', use='PTHREAD')
 	bld.program(target='gz_test', source='gz_test.cpp', use='ZLIB')
 	bld.program(target='atof_test', source='atof_test.cpp')
@@ -67,6 +67,8 @@ def build(bld):
 	bld.program(target='istringstream', source='istringstream.cpp')
 	bld.program(target='regex_test', source='regex.cpp')
 	bld.program(target='eigen_test', source='eigen_test.cpp', use = 'EIGEN')
+	bld.program(target='async2', source='async2.cpp', use='PTHREAD')
+	bld.program(target='async', source='async.cpp', use='PTHREAD')
 
 def configure(conf):
 	join = os.path.join
