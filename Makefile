@@ -1,7 +1,10 @@
 #CFLAGS="-mtune=generic"
-CFLAGS=-std=c++11 -O3 -march=native
+#CFLAGS=-std=c++11 -O3 -march=native -I/usr/include/eigen3 -Wno-deprecated-declarations
+CXX=clang++
+CFLAGS=-std=c++11 -ggdb -march=native -I/usr/include/eigen3 -Wno-deprecated-declarations
 
-all: math array copy zero bspline graph sinc gradtest linesearch plottest bspline_regularize goldensearch
+all: math array copy zero bspline graph sinc gradtest linesearch plottest \
+	bspline_regularize goldensearch struct_construct
 clean:
 	rm -f array zero bspline graph sinc gradtest
 %: %.cpp
@@ -9,6 +12,9 @@ clean:
 
 %: %.cxx
 	g++ $< -o $@ -std=c++11 ${CFLAGS}
+
+point_match: point_match.cpp
+	$(CXX) point_match.cpp -o point_match $(CFLAGS)
 
 bspline_regularize: bspline_regularize.cpp plot.cpp tga.cpp plot.h
 	g++ tga.cpp plot.cpp bspline_regularize.cpp -o bspline_regularize -std=c++11 -O3 -march=native
