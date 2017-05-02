@@ -13,6 +13,8 @@ typedef Eigen::Triplet<float> Triplet;
 
 typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> RowMajorMatrixXf;
 
+const float GRID_DX = 0.1;
+const float GRID_DY = 1;
 const float MIN_X = 0;
 const float MAX_X = 359.9999;
 const float MIN_Y = 30;
@@ -92,8 +94,8 @@ size_t grid_index(size_t width, size_t height, size_t grid_x, size_t grid_y)
 
 struct BSpline
 {
-    float grid_dx = 5;
-    float grid_dy = 5;
+    float grid_dx = GRID_DX;
+    float grid_dy = GRID_DY;
     float grid_min_x = MIN_Y;
     float grid_max_x = MAX_X;
     float grid_min_y = MIN_Y;
@@ -141,28 +143,22 @@ struct BSpline
 
 Eigen::VectorXf solve(const BSpline& spl, const Eigen::MatrixXf& points)
 {
+    std::cerr << "Filling Weights" << std::endl;
     auto Bmat = spl.getWeights(points);
+    Bmat.makeCompressed();
+    std::cerr << "Done" << std::endl;
 
-//    auto tmp = (RowMajorMatrixXf::Identity(Bmat.rows(), Bmat.rows()) * Bmat);
-//    for(size_t rr = 0; rr < Bmat.rows(); rr++) {
-//        RowMajorMatrixXf row = tmp.row(rr);
-//        Eigen::Map<RowMajorMatrixXf> rmap(row.data(), spl.y_knots, spl.x_knots);
-//        std::cerr << "\n-------\n" << rmap << "\n-----\n" << std::endl;
-//    }
-//    std::cerr << (RowMajorMatrixXf::Identity(Bmat.rows(), Bmat.rows()) * Bmat) << std::endl;
-
-    // make it dense :(
-    auto tmp = (RowMajorMatrixXf::Identity(Bmat.rows(), Bmat.rows()) * Bmat);
-    Eigen::ColPivHouseholderQR<Eigen::MatrixXf> qr(tmp);
-
-    // Right now this doesn't seem to work ...
-    // Bmat.makeCompressed();
     //Eigen::SparseQR<SparseMatrix, Eigen::NaturalOrdering<int>> qr;
-    //Eigen::SparseQR<SparseMatrix, Eigen::COLAMDOrdering<int>> qr;
+    std::cerr << "QR" << std::endl;
+    Eigen::SparseQR<SparseMatrix, Eigen::COLAMDOrdering<int>> qr(Bmat);
+    std::cerr << "Done" << std::endl;
     //Eigen::SPQR<SparseMatrix> qr;
     //qr.compute(Bmat);
     //Eigen::SparseLU<SparseMatrix> qr(Bmat);
-    return qr.solve(points.col(2));
+    std::cerr << "Solving: "<< std::endl;
+    Eigen::VectorXf sol = qr.solve(points.col(2));
+    std::cerr << "Done" << std::endl;
+    return sol;
 };
 
 Eigen::VectorXf interpolate(const BSpline& spl,
@@ -174,8 +170,8 @@ Eigen::VectorXf interpolate(const BSpline& spl,
 
 void drawPoints(const BSpline& spl, const Eigen::MatrixXf& points, const char* fname)
 {
-    size_t x_bins = spl.x_knots * 10;
-    size_t y_bins = spl.y_knots * 10;
+    size_t x_bins = spl.x_knots;
+    size_t y_bins = spl.y_knots;
     Eigen::VectorXf raster(x_bins * y_bins);
     raster.fill(0);
     for(size_t rr = 0; rr < points.rows(); rr++) {
