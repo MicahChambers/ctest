@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message Foo {
+    repeated uint32 rep_int = 1;
+    uint32 single_uint = 2;
+}

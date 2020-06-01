@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package anduril.telemetry.v1;
+
+import "google/protobuf/timestamp.proto";
+
+message TraceEvents { repeated DurationEvent durations = 1; }
+
+// These are produced by sensor-node-kernel processes that initialize tracing
+// code in sensor-node-kernel/tracing/
+//
+// Schema from:
+// https://github.com/catapult-project/catapult/tree/master/tracing
+// https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview
+// https://www.chromium.org/developers/how-tos/trace-event-profiling-tool/using-frameviewer
+//
+//   name:  The name of the event, as displayed in Trace Viewer
+//   cat:   The event categories. This is a comma separated list of categories
+//          for the event. The categories can be used to hide events in the
+//          Trace Viewer UI.
+//   ph:    (this is the message type, needed in JSON but not by us)
+//          The event type. This is a single character which changes depending
+//          on the type of event being output. The valid values are listed in
+//          the table below.  We will discuss each phase type below.
+//
+//   ts:    The tracing clock timestamp of the event. The timestamps are
+//          provided at microsecond granularity.
+//   tts:   Optional. The thread clock timestamp of the event. The timestamps
+//          are provided at microsecond granularity.
+//   pid:   The process ID for the process that output this event.
+//   tid:   The thread ID for the thread that output this event.
+//   args:  Any arguments provided for the event. Some of the event types have
+//          required argument fields, otherwise, you can put any information you
+//          wish in here. The arguments are displayed in Trace Viewer when you
+//          view an event in the analysis section.
+message DurationEvent {
+    // Time range for trace, usually a function, wall time
+    google.protobuf.Timestamp start_time = 1;
+    google.protobuf.Timestamp end_time = 2;
+
+    // What asset the trace was produced on. This is sort of a duplicate with
+    // flux (since that also has the asset id), but kept for completeness.
+    uint32 asset_id = 3;
+
+    // What process we're tracing, the unique process number, on unix this is
+    // usually capped to 32,767 but the smallest integer in protobuf is 32 bits
+    uint32 process_id = 4;
+
+    // What thread within the process that we are tracing, in many cases
+    // this will be a hash of std::this_thread::get_id(), in other cases it
+    // may be the product of pthread_self(). The only requirements are:
+    // - it is unique within a process_id
+    // is that within a
+    // process it is unique and consistent over time
+    uint32 thread_id = 5;
+
+    // Tags that can be used to break out traces, see docs
+    repeated string categories = 6;
+
+    // Misc strings that will be displayed with the event
+    repeated string args = 7;
+
+    // Line number in file where trace starts (__LINE__)
+    uint32 line_number = 8;
+
+    // Name of file that we're tracing in (basename of __FILE__)
+    string filename = 9;
+
+    // Name of enclosing function (__FUNCTION__)
+    string function_name = 10;
+
+    // Not required, but useful if a function has been broken down into pieces
+    // e.g. setup, run, teardown
+    string section_name = 11;
+}
