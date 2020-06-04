@@ -2,20 +2,14 @@ load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 
 cc_binary(
+    name = "envExpand",
+    srcs = ["envExpand.cc"],
+)
+
+
+cc_binary(
     name = "string_assign_allo",
     srcs = ["string_assign_allo.cc"],
-)
-
-cc_binary(
-    name = "count_allocs",
-    srcs = ["count_allocs.cc"],
-    deps = ["@opentracing"],
-)
-
-cc_binary(
-    name = "hello_world",
-    srcs = ["hello_world.cc"],
-    deps = ["@opentracing"],
 )
 
 cc_binary(
@@ -61,6 +55,7 @@ cc_binary(
         "@magic_enum",
         "@yaml-cpp",
     ],
+    copts = ['-std=c++17'],
 )
 
 proto_library(
