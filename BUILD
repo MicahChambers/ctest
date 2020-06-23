@@ -2,6 +2,11 @@ load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 
 cc_binary(
+    name = "virtual_deconstructor",
+    srcs = ["virtual_deconstructor.cc"],
+)
+
+cc_binary(
     name = "envExpand",
     srcs = ["envExpand.cc"],
 )
